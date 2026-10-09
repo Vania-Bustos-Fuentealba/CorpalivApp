@@ -3,33 +3,57 @@ package com.duocuc.corpalivapp.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.duocuc.corpalivapp.navigation.Screen
+import com.duocuc.corpalivapp.ui.components.AppBottomBar
 import com.duocuc.corpalivapp.ui.components.OportunidadCard
 import com.duocuc.corpalivapp.ui.viewmodel.OportunidadUiState
 import com.duocuc.corpalivapp.ui.viewmodel.OportunidadViewModel
 
+/**
+ * GUÍA 10 - PANTALLA 2: OPORTUNIDADES
+ *
+ * Combina TopAppBar (con flecha para volver) y NavigationBar inferior.
+ * La navegación no se hace aquí: la pantalla solo avisa mediante [onBack] y
+ * [onNavigate], y el MainViewModel emite el evento correspondiente.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OportunidadesScreen(
+    onBack: () -> Unit = {},
+    onNavigate: (Screen) -> Unit = {},
     viewModel: OportunidadViewModel = viewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("CORPALIV - Impacto Social") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Volver"
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 )
             )
+        },
+        bottomBar = {
+            AppBottomBar(selected = Screen.Oportunidades, onNavigate = onNavigate)
         }
     ) { paddingValues ->
         Box(

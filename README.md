@@ -31,11 +31,30 @@ Aplicación móvil orientada a centralizar y visibilizar las oportunidades de co
 ```text
 com.duocuc.corpalivapp/
 ├── data/
-│   ├── model/          # Data Classes (OportunidadModel)
+│   ├── model/          # Data Classes (OportunidadModel, Persona, Empleado, ResultadoLogin...)
 │   └── network/        # Interfaces Retrofit y Cliente de API (ApiService, RetrofitClient)
+├── navigation/         # Guía 10: rutas y eventos de navegación
+│   ├── Screen.kt           # Sealed class con las rutas tipo-safe
+│   └── NavigationEvent.kt  # Eventos: NavigateTo, PopBackStack, NavigateUp
 ├── ui/
-│   ├── components/     # Componentes reutilizables de Compose (OportunidadCard)
-│   ├── screens/        # Pantallas principales de la interfaz (OportunidadesScreen)
+│   ├── components/     # OportunidadCard, AppDrawerContent, AppBottomBar, DestinosNavegacion
+│   ├── screens/        # HomeScreen, HomeScreenAdaptativas, OportunidadesScreen, InstitucionScreen
 │   ├── theme/          # Paleta de colores, tipografía y tema (Material 3)
-│   └── viewmodel/      # Gestión del estado de la UI y lógica de negocio (OportunidadViewModel)
-└── MainActivity.kt     # Punto de entrada de la aplicación
+│   └── viewmodel/      # OportunidadViewModel y MainViewModel (navegación)
+├── util/               # WindowSizeUtils (WindowSizeClass)
+└── MainActivity.kt     # NavController + NavHost (punto de entrada)
+```
+
+---
+
+## 🧭 Guía 10 - Navegación y estructura visual
+
+Flujo de navegación (MVVM): `Pantalla → MainViewModel (emite NavigationEvent) → MainActivity (NavController) → destino`.
+
+| Ruta | Pantalla | Componentes de navegación |
+|------|----------|---------------------------|
+| `home_page` | Inicio adaptativo (Guía 8 y 9) | `TopAppBar` + `ModalNavigationDrawer` (Compact/Medium) o `PermanentNavigationDrawer` (Expanded) |
+| `oportunidades_page` | Oportunidades y proyectos RSE | `TopAppBar` con flecha de retorno + `NavigationBar` |
+| `institucion_page` | Quiénes somos | `NavigationBar` |
+
+Evidencia de trabajo colaborativo: rama `feature/navegacion-menu`, commit `Navegación y menú generado` y tarjeta de Trello actualizada con captura.

@@ -11,17 +11,28 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.PermanentDrawerSheet
+import androidx.compose.material3.PermanentNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -31,7 +42,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.duocuc.corpalivapp.R
+import com.duocuc.corpalivapp.navigation.Screen
+import com.duocuc.corpalivapp.ui.components.AppDrawerContent
 import com.duocuc.corpalivapp.util.obtenerWindowSizeClass
+import kotlinx.coroutines.launch
 import kotlin.OptIn
 
 // ======================================================================================
@@ -39,11 +53,15 @@ import kotlin.OptIn
 // ======================================================================================
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreenCompacta(onNavigateToOportunidades: () -> Unit = {}) {
+fun HomeScreenCompacta(
+    onNavigateToOportunidades: () -> Unit = {},
+    onMenuClick: (() -> Unit)? = null
+) {
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("CORPALIV Mobile", fontWeight = FontWeight.Bold) },
+                navigationIcon = { BotonMenu(onMenuClick) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 )
@@ -93,11 +111,15 @@ fun HomeScreenCompacta(onNavigateToOportunidades: () -> Unit = {}) {
 // ======================================================================================
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreenMediana(onNavigateToOportunidades: () -> Unit = {}) {
+fun HomeScreenMediana(
+    onNavigateToOportunidades: () -> Unit = {},
+    onMenuClick: (() -> Unit)? = null
+) {
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("CORPALIV - Vista Tablet / Plegable", fontWeight = FontWeight.Bold) },
+                navigationIcon = { BotonMenu(onMenuClick) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.secondaryContainer
                 )
@@ -254,17 +276,82 @@ fun HomeScreenExpandida(onNavigateToOportunidades: () -> Unit = {}) {
 }
 
 // ======================================================================================
-// 4. CONTENEDOR ADAPTATIVO PRINCIPAL (Guía 9)
+// 4. CONTENEDOR ADAPTATIVO PRINCIPAL (Guía 9 + Guía 10)
 // ======================================================================================
-@Composable
-fun HomeScreenAdaptive(onNavigateToOportunidades: () -> Unit = {}) {
-    val windowSizeClass = obtenerWindowSizeClass()
 
-    // Evaluador exhaustivo del tamaño de ancho de ventana
+/**
+ * GUÍA 10 - Botón de menú (ícono de hamburguesa) de la TopAppBar.
+ * Si [onMenuClick] es null (menú permanente en pantallas grandes) no se muestra nada.
+ */
+@Composable
+private fun BotonMenu(onMenuClick: (() -> Unit)?) {
+    if (onMenuClick != null) {
+        IconButton(onClick = onMenuClick) {
+            Icon(imageVector = Icons.Default.Menu, contentDescription = "Abrir menú")
+        }
+    }
+}
+
+/**
+ * GUÍA 10 - NavigationDrawer MODAL (Compact y Medium): el menú se abre desde
+ * el ícono de la TopAppBar o deslizando desde el borde izquierdo.
+ */
+@Composable
+private fun HomeConMenuModal(
+    onNavigate: (Screen) -> Unit,
+    contenido: @Composable (abrirMenu: () -> Unit) -> Unit
+) {
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet {
+                AppDrawerContent(
+                    selected = Screen.Home,
+                    onItemClick = { destino ->
+                        scope.launch { drawerState.close() }
+                        onNavigate(destino)
+                    }
+                )
+            }
+        }
+    ) {
+        contenido { scope.launch { drawerState.open() } }
+    }
+}
+
+/**
+ * Contenedor adaptativo de la pantalla de inicio.
+ * - Compact / Medium: menú lateral modal con botón de hamburguesa.
+ * - Expanded: menú lateral permanente siempre visible.
+ * La navegación se delega en [onNavigate] (MainViewModel -> NavController).
+ */
+@Composable
+fun HomeScreenAdaptive(onNavigate: (Screen) -> Unit = {}) {
+    val windowSizeClass = obtenerWindowSizeClass()
+    val irAOportunidades = { onNavigate(Screen.Oportunidades) }
+
+    // Evaluador del tamaño de ancho de ventana
     when (windowSizeClass.widthSizeClass) {
-        WindowWidthSizeClass.Compact -> HomeScreenCompacta(onNavigateToOportunidades)
-        WindowWidthSizeClass.Medium -> HomeScreenMediana(onNavigateToOportunidades)
-        WindowWidthSizeClass.Expanded -> HomeScreenExpandida(onNavigateToOportunidades)
+        WindowWidthSizeClass.Compact -> HomeConMenuModal(onNavigate) { abrirMenu ->
+            HomeScreenCompacta(irAOportunidades, abrirMenu)
+        }
+
+        WindowWidthSizeClass.Medium -> HomeConMenuModal(onNavigate) { abrirMenu ->
+            HomeScreenMediana(irAOportunidades, abrirMenu)
+        }
+
+        WindowWidthSizeClass.Expanded -> PermanentNavigationDrawer(
+            drawerContent = {
+                PermanentDrawerSheet(modifier = Modifier.width(280.dp)) {
+                    AppDrawerContent(selected = Screen.Home, onItemClick = onNavigate)
+                }
+            }
+        ) {
+            HomeScreenExpandida(irAOportunidades)
+        }
     }
 }
 

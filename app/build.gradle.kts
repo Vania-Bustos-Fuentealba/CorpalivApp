@@ -38,12 +38,16 @@ android {
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    // Íconos básicos (Menu, Home, Info, Favorite, ArrowBack) usados en la navegación
+    implementation(libs.androidx.compose.material.icons.core)
 
     // Retrofit & Gson
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
@@ -52,8 +56,9 @@ dependencies {
     // Coil para imágenes
     implementation("io.coil-kt:coil-compose:2.6.0")
 
-    // Navigation Compose
-    implementation("androidx.navigation:navigation-compose:2.7.7")
+    // GUÍA 10 - Navigation Compose (NavHost y NavController) y corutinas
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.kotlinx.coroutines.android)
 
     // Dependencia en Gradle
     implementation("androidx.compose.material3:material3-window-size-class")
