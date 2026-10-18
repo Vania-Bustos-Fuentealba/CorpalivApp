@@ -1,7 +1,7 @@
 package com.duocuc.corpalivapp.data.model
 
 /**
- * GUÍA 4 (POO - CLASE BASE):
+ * G4:
  * Representa la abstracción general de un integrante en la red CORPALIV.
  * Se utiliza la palabra clave 'open' para permitir que otras clases hereden de ella.
  */
@@ -10,8 +10,8 @@ open class Persona(
     val edad: Int
 ) {
     /**
-     * GUÍA 4 (POLIMORFISMO - MÉTODO BASE):
-     * Marcado como 'open' para permitir su sobrescritura (override) en las clases hijas.
+     * GUÍA 4 (POLIMORFISMO - METODO BASE):
+     * Marcado como 'open' para permitir su sobrescritura en las clases hijas.
      */
     open fun presentarse(): String {
         val saludo = "Hola, mi nombre es $nombre y tengo $edad años."

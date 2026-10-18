@@ -8,8 +8,8 @@ package com.duocuc.corpalivapp.data.model
  * 2. Seguridad ante Nulos / Null Safety (String?, operador de llamada segura ?.)
  * 3. Control de Flujo con Expresión 'when'
  *
- * IMPLEMENTACIÓN GUÍA 4 (DSY1105):
- * 4. Integración POO: Relación de composición con la clase 'Empleado' (que hereda de 'Persona').
+ * G4:
+ * Integración POO: Relación de composición con la clase 'Empleado' (que hereda de 'Persona').
  */
 data class OportunidadModel(
     val id: Int,
@@ -19,8 +19,8 @@ data class OportunidadModel(
     val impactoSocial: String,
 
     // ---------------------------------------------------------------------
-    // GUÍA 2 - NULL SAFETY:
-    // Definición de atributos de tipo String? (nulables) para manejar datos opcionales
+    // G2:
+    // Definición de atributos de tipo String para manejar datos opcionales
     // provistos por el backend o el origen de datos sin romper la aplicación.
     // ---------------------------------------------------------------------
     val imagenUrl: String?,
@@ -30,42 +30,41 @@ data class OportunidadModel(
     // GUÍA 2 - VARIABLES NUMÉRICAS (Double):
     // Declaración explícita de tipos numéricos de punto flotante para métricas financieras.
     // ---------------------------------------------------------------------
-    val metaFinanciamiento: Double,
-    val montoRecaudado: Double,
+    val metaFinanciamiento: Int,
+    val montoRecaudado: Int,
 
     // ---------------------------------------------------------------------
-    // GUÍA 4 - INTEGRACIÓN POO (Relación de Composición / Herencia):
+    // G4:
     // Asigna al profesional a cargo del proyecto (instancia de Empleado que hereda de Persona).
-    // Opcional (= null) para resguardar la compatibilidad con endpoints existentes.
     // ---------------------------------------------------------------------
     val responsable: Empleado? = null
 ) {
 
     // ---------------------------------------------------------------------
-    // GUÍA 2 - OPERADORES ARITMÉTICOS (Resta '-'):
+    // G2:
     // Calcula la brecha o saldo faltante para alcanzar la meta financiera del programa.
     // ---------------------------------------------------------------------
-    fun calcularMontoFaltante(): Double {
+    fun calcularMontoFaltante(): Int {
         val faltante = metaFinanciamiento - montoRecaudado
-        return if (faltante > 0) faltante else 0.0
+        return if (faltante > 0) faltante else 0
     }
 
     // ---------------------------------------------------------------------
-    // GUÍA 2 - OPERADORES ARITMÉTICOS (División '/' y Multiplicación '*'):
+    // G2:
     // Calcula la relación porcentual de avance del financiamiento: (montoRecaudado / meta) * 100
-    // y realiza la conversión explícita a entero (.toInt()).
+    // y convierte a entero.
     // ---------------------------------------------------------------------
     fun calcularPorcentajeAvance(): Int {
         if (metaFinanciamiento <= 0.0) return 0
-        val porcentaje = (montoRecaudado / metaFinanciamiento) * 100
+        // G2: se pasa a Double para que la división no se trunque a 0 (ej: 1200000 / 5000000).
+        val porcentaje = (montoRecaudado.toDouble() / metaFinanciamiento) * 100
         return porcentaje.toInt()
     }
 
-    // ---------------------------------------------------------------------
-    // GUÍA 2 - NULL SAFETY (Llamada Segura '?.'):
+
+    // G2 - NULL SAFETY:
     // Utiliza 'contactoEmail?.length' para consultar la propiedad únicamente si la variable
-    // no es nula. Garantiza un retorno seguro de email o una dirección por defecto (fallback).
-    // ---------------------------------------------------------------------
+    // no es nula
     fun obtenerContactoSeguro(): String {
         val longitudEmail = contactoEmail?.length // Llamada segura ?.
 
@@ -77,7 +76,7 @@ data class OportunidadModel(
     }
 
     // ---------------------------------------------------------------------
-    // GUÍA 2 - CONTROL DE FLUJO ('when' como expresión):
+    // G2 - CONTROL DE FLUJO:
     // Evalúa rangos numéricos del porcentaje de avance para asignar dinámicamente
     // la etiqueta de prioridad de vinculación institucional.
     // ---------------------------------------------------------------------

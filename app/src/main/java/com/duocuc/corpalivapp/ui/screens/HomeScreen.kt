@@ -27,17 +27,15 @@ import com.duocuc.corpalivapp.R
 import kotlin.OptIn
 
 /**
- * GUÍA 8 - CONSTRUCCIÓN VISUAL DE PANTALLA BASE CON JETPACK COMPOSE:
- *
- * Implementación de la pantalla base mediante Scaffold, organizando jerárquicamente
- * TopAppBar, Column, Text, Button e Image con estilos de Material3 y Modifier.
+ * G8 - CONSTRUCCIÓN DE PANTALLA:
+ * Scaffold, organizando jerárquicamente además de TopAppBar, Column, Text, Button e Image con estilos de Material3 y Modifier.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onNavigateToOportunidades: () -> Unit = {}
 ) {
-    // GUÍA 8 - ESTRUCTURA BASE SCAFFOLD: Provee la barra superior y gestiona los márgenes seguros
+    // G8 - Provee la barra superior y gestiona los márgenes seguros
     Scaffold(
         topBar = {
             TopAppBar(
@@ -55,7 +53,7 @@ fun HomeScreen(
             )
         }
     ) { innerPadding ->
-        // GUÍA 8 - MÁRGENES Y ESPACIADO UNIFORME:
+        // G8 - MARGENES:
         // Se aplica Modifier.padding(innerPadding) para respetar el Scaffold y Arrangement.spacedBy(20.dp)
         Column(
             modifier = Modifier
@@ -65,7 +63,7 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // GUÍA 8 - ELEMENTO TEXT: Encabezado principal de bienvenida
+            // G8: Encabezado principal de bienvenida
             Text(
                 text = "¡Bienvenido a CORPALIV!",
                 style = MaterialTheme.typography.headlineMedium,
@@ -74,7 +72,7 @@ fun HomeScreen(
                 textAlign = TextAlign.Center
             )
 
-            // GUÍA 8 - ELEMENTO TEXT: Bajada descriptiva de contexto institucional
+            // G8: Bajada de contexto institucional
             Text(
                 text = "Plataforma de vinculación para Escuela Especial Jean Van Dijk y Taller Ocupacional Alba Lab.",
                 style = MaterialTheme.typography.bodyLarge,
@@ -82,7 +80,7 @@ fun HomeScreen(
                 textAlign = TextAlign.Center
             )
 
-            // GUÍA 8 - ELEMENTO IMAGE: Carga del logotipo
+            // G8 - ELEMENTO IMAGE: Carga del logotipo
             Image(
                 painter = painterResource(id = R.drawable.ic_launcher_foreground),
                 contentDescription = "Logo Institucional CORPALIV",
@@ -92,7 +90,7 @@ fun HomeScreen(
                 contentScale = ContentScale.Fit
             )
 
-            // GUÍA 8 - ELEMENTO BUTTON: Acción principal de navegación e interacción
+            // G8 - Acción principal de navegación e interacción
             Button(
                 onClick = { onNavigateToOportunidades() },
                 modifier = Modifier.fillMaxWidth()
@@ -106,7 +104,7 @@ fun HomeScreen(
     }
 }
 
-// GUÍA 8 - PREVIEW: Permite previsualizar la interfaz en tiempo de diseño en Android Studio
+// G8: Permite previsualizar la interfaz.
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {

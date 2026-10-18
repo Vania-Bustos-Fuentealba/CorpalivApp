@@ -56,9 +56,12 @@ dependencies {
     // Coil para imágenes
     implementation("io.coil-kt:coil-compose:2.6.0")
 
-    // GUÍA 10 - Navigation Compose (NavHost y NavController) y corutinas
+    // G10 - Navigation compose y corrutinas
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlinx.coroutines.android)
+
+    // G12 - Dependencia local del estado
+    implementation(libs.androidx.datastore.preferences)
 
     // Dependencia en Gradle
     implementation("androidx.compose.material3:material3-window-size-class")

@@ -31,25 +31,30 @@ Aplicación móvil orientada a centralizar y visibilizar las oportunidades de co
 ```text
 com.duocuc.corpalivapp/
 ├── data/
-│   ├── model/          # Data Classes (OportunidadModel, Persona, Empleado, ResultadoLogin...)
+│   ├── local/          # Guía 12: EstadoDataStore (DataStore Preferences)
+│   ├── model/          # OportunidadModel, Persona, Empleado... + Guía 11: UsuarioUiState, UsuarioErrores
 │   └── network/        # Interfaces Retrofit y Cliente de API (ApiService, RetrofitClient)
-├── navigation/         # Guía 10: rutas y eventos de navegación
+├── navigation/         # Guías 10 y 11
 │   ├── Screen.kt           # Sealed class con las rutas tipo-safe
-│   └── NavigationEvent.kt  # Eventos: NavigateTo, PopBackStack, NavigateUp
+│   ├── NavigationEvent.kt  # Eventos: NavigateTo, PopBackStack, NavigateUp
+│   └── AppNavigation.kt    # NavController + NavHost + ViewModels compartidos
 ├── ui/
-│   ├── components/     # OportunidadCard, AppDrawerContent, AppBottomBar, DestinosNavegacion
-│   ├── screens/        # HomeScreen, HomeScreenAdaptativas, OportunidadesScreen, InstitucionScreen
+│   ├── components/     # OportunidadCard, AppTopBar, AppDrawerContent, AppBottomBar,
+│   │                   # DestinosNavegacion, ImagenInteligente (Guía 13)
+│   ├── screens/        # HomeScreen, HomeScreenAdaptativas, OportunidadesScreen, InstitucionScreen,
+│   │                   # RegistroScreen, ResumenScreen (G11), ModoEspecialScreen (G12), PerfilScreen (G13)
 │   ├── theme/          # Paleta de colores, tipografía y tema (Material 3)
-│   └── viewmodel/      # OportunidadViewModel y MainViewModel (navegación)
-├── util/               # WindowSizeUtils (WindowSizeClass)
-└── MainActivity.kt     # NavController + NavHost (punto de entrada)
+│   └── viewmodel/      # OportunidadViewModel, MainViewModel (navegación), UsuarioViewModel (G11),
+│                       # EstadoViewModel (G12), PerfilViewModel (G13)
+├── util/               # WindowSizeUtils (WindowSizeClass), ArchivosUtils (FileProvider)
+└── MainActivity.kt     # Punto de entrada: llama a AppNavigation()
 ```
 
 ---
 
 ## 🧭 Guía 10 - Navegación y estructura visual
 
-Flujo de navegación (MVVM): `Pantalla → MainViewModel (emite NavigationEvent) → MainActivity (NavController) → destino`.
+Flujo de navegación (MVVM): `Pantalla → MainViewModel (emite NavigationEvent) → AppNavigation (NavController) → destino`.
 
 | Ruta | Pantalla | Componentes de navegación |
 |------|----------|---------------------------|
@@ -57,4 +62,28 @@ Flujo de navegación (MVVM): `Pantalla → MainViewModel (emite NavigationEvent)
 | `oportunidades_page` | Oportunidades y proyectos RSE | `TopAppBar` con flecha de retorno + `NavigationBar` |
 | `institucion_page` | Quiénes somos | `NavigationBar` |
 
-Evidencia de trabajo colaborativo: rama `feature/navegacion-menu`, commit `Navegación y menú generado` y tarjeta de Trello actualizada con captura.
+---
+
+## 📝 Guía 11 - Formularios, validaciones y paso de información
+
+- `UsuarioUiState` y `UsuarioErrores` modelan el estado del formulario (`data/model`).
+- `UsuarioViewModel` guarda el estado en un `MutableStateFlow` y valida con `validarFormulario()`; los errores se corrigen en tiempo real mientras se escribe.
+- `RegistroScreen` (`OutlinedTextField`, `PasswordVisualTransformation`, `Checkbox`, `Button`, `isError` + `supportingText`) y `ResumenScreen` comparten el **mismo** `UsuarioViewModel`, sin pasar argumentos por la ruta.
+- Rutas: `registro_page` → `interes_page` → `resumen_page`. Pruebas unitarias en `UsuarioViewModelTest`.
+
+## ✨ Guía 12 - Animaciones y estados
+
+- `ModoEspecialScreen`: interruptor persistente con **DataStore Preferences** (`EstadoDataStore` + `EstadoViewModel`).
+- Estado derivado con `derivedStateOf`, panel con `rememberSaveable`, carga inicial con `CircularProgressIndicator`.
+- Animaciones: `animateColorAsState`, `animateFloatAsState`, `AnimatedContent`, `AnimatedVisibility` y `animateContentSize`.
+
+## 📷 Guía 13 - Recurso nativo: cámara y galería
+
+- `PerfilScreen` usa `rememberLauncherForActivityResult` con `GetContent()` (galería) y `TakePicture()` (cámara) + permiso `CAMERA` en tiempo de ejecución.
+- `FileProvider` (`res/xml/file_paths.xml` y `AndroidManifest.xml`) entrega a la cámara un `Uri` temporal seguro.
+- `PerfilViewModel` guarda el `Uri?` en un `StateFlow`; `ImagenInteligente` lo muestra en círculo (o un ícono por defecto) y también se reutiliza en la cabecera del menú lateral.
+- Probar en un **teléfono físico**; cancelar la galería o la cámara no cierra la app.
+
+---
+
+Ramas y commits de evidencia: `feature/navegacion-menu`, `feature/registro-formulario`, `feature/estado-animaciones` y `feature/imagen-inteligente`.

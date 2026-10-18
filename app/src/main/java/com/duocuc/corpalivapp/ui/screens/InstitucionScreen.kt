@@ -24,10 +24,8 @@ import com.duocuc.corpalivapp.navigation.Screen
 import com.duocuc.corpalivapp.ui.components.AppBottomBar
 
 /**
- * GUÍA 10 - PANTALLA 3: INFORMACIÓN INSTITUCIONAL
- *
+ * G10: INFORMACIÓN INSTITUCIONAL
  * Muestra a quién está dirigida la plataforma. Incluye la barra inferior
- * (NavigationBar) para recorrer las pantallas principales de la app.
  */
 @Composable
 fun InstitucionScreen(
@@ -61,7 +59,7 @@ fun InstitucionScreen(
             )
             TarjetaInstitucional(
                 titulo = "Escuela Especial Jean Van Dijk",
-                descripcion = "Comunidad educativa que recibe el apoyo de empresas y donantes aliados."
+                descripcion = "Comunidad educativa que recibe el apoyo de empresas y donantes."
             )
             TarjetaInstitucional(
                 titulo = "Alba Lab",

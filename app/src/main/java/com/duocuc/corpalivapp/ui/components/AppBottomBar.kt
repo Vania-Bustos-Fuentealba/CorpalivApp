@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import com.duocuc.corpalivapp.navigation.Screen
 
 /**
- * GUÍA 10 - BARRA INFERIOR (NavigationBar / BottomBar)
+ * G10 - BARRA INFERIOR
  *
  * Componente reutilizable: cada pantalla indica cuál es su destino actual
  * ([selected]) y recibe el destino elegido por el usuario en [onNavigate].

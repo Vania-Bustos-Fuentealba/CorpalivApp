@@ -20,11 +20,7 @@ import com.duocuc.corpalivapp.ui.viewmodel.OportunidadUiState
 import com.duocuc.corpalivapp.ui.viewmodel.OportunidadViewModel
 
 /**
- * GUÍA 10 - PANTALLA 2: OPORTUNIDADES
- *
- * Combina TopAppBar (con flecha para volver) y NavigationBar inferior.
- * La navegación no se hace aquí: la pantalla solo avisa mediante [onBack] y
- * [onNavigate], y el MainViewModel emite el evento correspondiente.
+ * G10 PANTALLA 2: OPORTUNIDADES.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

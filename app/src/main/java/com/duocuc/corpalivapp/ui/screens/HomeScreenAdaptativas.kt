@@ -1,5 +1,6 @@
 package com.duocuc.corpalivapp.ui.screens
 
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -48,9 +49,7 @@ import com.duocuc.corpalivapp.util.obtenerWindowSizeClass
 import kotlinx.coroutines.launch
 import kotlin.OptIn
 
-// ======================================================================================
-// 1. VISTA COMPACTA (Smartphones en orientación vertical)
-// ======================================================================================
+// 1. VISTA COMPACTA
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreenCompacta(
@@ -299,6 +298,7 @@ private fun BotonMenu(onMenuClick: (() -> Unit)?) {
 @Composable
 private fun HomeConMenuModal(
     onNavigate: (Screen) -> Unit,
+    fotoPerfil: Uri?,
     contenido: @Composable (abrirMenu: () -> Unit) -> Unit
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -310,6 +310,7 @@ private fun HomeConMenuModal(
             ModalDrawerSheet {
                 AppDrawerContent(
                     selected = Screen.Home,
+                    fotoPerfil = fotoPerfil,
                     onItemClick = { destino ->
                         scope.launch { drawerState.close() }
                         onNavigate(destino)
@@ -329,24 +330,31 @@ private fun HomeConMenuModal(
  * La navegación se delega en [onNavigate] (MainViewModel -> NavController).
  */
 @Composable
-fun HomeScreenAdaptive(onNavigate: (Screen) -> Unit = {}) {
+fun HomeScreenAdaptive(
+    onNavigate: (Screen) -> Unit = {},
+    fotoPerfil: Uri? = null
+) {
     val windowSizeClass = obtenerWindowSizeClass()
     val irAOportunidades = { onNavigate(Screen.Oportunidades) }
 
     // Evaluador del tamaño de ancho de ventana
     when (windowSizeClass.widthSizeClass) {
-        WindowWidthSizeClass.Compact -> HomeConMenuModal(onNavigate) { abrirMenu ->
+        WindowWidthSizeClass.Compact -> HomeConMenuModal(onNavigate, fotoPerfil) { abrirMenu ->
             HomeScreenCompacta(irAOportunidades, abrirMenu)
         }
 
-        WindowWidthSizeClass.Medium -> HomeConMenuModal(onNavigate) { abrirMenu ->
+        WindowWidthSizeClass.Medium -> HomeConMenuModal(onNavigate, fotoPerfil) { abrirMenu ->
             HomeScreenMediana(irAOportunidades, abrirMenu)
         }
 
         WindowWidthSizeClass.Expanded -> PermanentNavigationDrawer(
             drawerContent = {
                 PermanentDrawerSheet(modifier = Modifier.width(280.dp)) {
-                    AppDrawerContent(selected = Screen.Home, onItemClick = onNavigate)
+                    AppDrawerContent(
+                        selected = Screen.Home,
+                        fotoPerfil = fotoPerfil,
+                        onItemClick = onNavigate
+                    )
                 }
             }
         ) {

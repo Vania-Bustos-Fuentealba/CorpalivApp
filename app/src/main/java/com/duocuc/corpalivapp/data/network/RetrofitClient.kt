@@ -5,7 +5,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
 
-    // Pon aquí la URL base de tu API REST
+    // URL base de API rest, la colocaremos aquí
     private const val BASE_URL = "https://run.mocky.io/v3/"
 
     val apiService: ApiService by lazy {

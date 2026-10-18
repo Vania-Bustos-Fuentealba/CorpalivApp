@@ -1,7 +1,7 @@
 package com.duocuc.corpalivapp.data.model
 
 /**
- * GUÍA 5 - CLASE SELLADA (SEALED CLASS):
+ * G5 - SEALED CLASS:
  * Define el conjunto cerrado de estados finitos posibles durante la autenticación.
  */
 sealed class ResultadoLogin {

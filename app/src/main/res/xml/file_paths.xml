@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- G13: Son las carpetas que FileProvider puede compartir con la app de cámara -->
+<paths>
+    <cache-path
+        name="fotos"
+        path="fotos/" />
+</paths>
