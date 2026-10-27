@@ -1,19 +1,25 @@
 package com.duocuc.corpalivapp.navigation
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.duocuc.corpalivapp.ui.components.AppBottomBar
 import com.duocuc.corpalivapp.ui.screens.HomeScreenAdaptive
 import com.duocuc.corpalivapp.ui.screens.InstitucionScreen
-import com.duocuc.corpalivapp.ui.screens.InteresScreen
 import com.duocuc.corpalivapp.ui.screens.ModoEspecialScreen
 import com.duocuc.corpalivapp.ui.screens.OportunidadesScreen
 import com.duocuc.corpalivapp.ui.screens.PerfilScreen
@@ -68,69 +74,87 @@ fun AppNavigation(
     }
     val volver: () -> Unit = remember(mainViewModel) { { mainViewModel.navigateBack() } }
 
-    NavHost(
-        navController = navController,
-        startDestination = Screen.Home.route,
-        modifier = Modifier.fillMaxSize()
-    ) {
-        composable(route = Screen.Home.route) {
-            val fotoPerfil by perfilViewModel.imagenUri.collectAsStateWithLifecycle()
-            HomeScreenAdaptive(
-                onNavigate = navegarDesdeMenu,
-                fotoPerfil = fotoPerfil
-            )
-        }
-        composable(route = Screen.Oportunidades.route) {
-            OportunidadesScreen(
-                onBack = volver,
-                onNavigate = navegarDesdeMenu
-            )
-        }
-        composable(route = Screen.Institucion.route) {
-            InstitucionScreen(onNavigate = navegarDesdeMenu)
-        }
+    // Ruta de la pantalla visible: sirve para resaltar la opción de la barra inferior
+    val entradaActual by navController.currentBackStackEntryAsState()
+    val rutaActual = entradaActual?.destination?.route
 
-        // GUÍA 11: formulario -> interés -> resumen (mismo UsuarioViewModel)
-        composable(route = Screen.Registro.route) {
-            RegistroScreen(
-                viewModel = usuarioViewModel,
-                onBack = volver,
-                onRegistrado = { mainViewModel.navigateTo(Screen.Interes) }
-            )
-        }
-        composable(route = Screen.Interes.route) {
-            InteresScreen(
-                viewModel = usuarioViewModel,
-                onBack = volver,
-                onContinuar = { mainViewModel.navigateTo(Screen.Resumen) }
-            )
-        }
-        composable(route = Screen.Resumen.route) {
-            ResumenScreen(
-                viewModel = usuarioViewModel,
-                onBack = volver,
-                onFinalizar = {
-                    usuarioViewModel.reiniciar()
-                    mainViewModel.navigateTo(
-                        screen = Screen.Home,
-                        popUpToRoute = Screen.Home,
-                        singleTop = true
-                    )
-                }
-            )
-        }
+    // El flujo de registro (formulario y resumen) cuenta como parte de "Oportunidades"
+    val seccionActual: Screen? = when (rutaActual) {
+        Screen.Home.route -> Screen.Home
+        Screen.Oportunidades.route, Screen.Registro.route, Screen.Resumen.route -> Screen.Oportunidades
+        Screen.Institucion.route -> Screen.Institucion
+        else -> null
+    }
 
-        // GUÍA 12: estado persistente y animaciones
-        composable(route = Screen.ModoEspecial.route) {
-            ModoEspecialScreen(onBack = volver)
-        }
+    // G10: la barra inferior se declara una sola vez y se ve en todas las pantallas.
+    // contentWindowInsets en 0: cada pantalla ya maneja su margen superior; aquí solo se reserva la barra.
+    Scaffold(
+        bottomBar = { AppBottomBar(selected = seccionActual, onNavigate = navegarDesdeMenu) },
+        contentWindowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)
+    ) { innerPadding ->
+        NavHost(
+            navController = navController,
+            startDestination = Screen.Home.route,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .consumeWindowInsets(innerPadding)
+        ) {
+            composable(route = Screen.Home.route) {
+                val fotoPerfil by perfilViewModel.imagenUri.collectAsStateWithLifecycle()
+                HomeScreenAdaptive(
+                    onNavigate = navegarDesdeMenu,
+                    fotoPerfil = fotoPerfil
+                )
+            }
+            composable(route = Screen.Oportunidades.route) {
+                // Al elegir una oportunidad se guarda su título y se abre el formulario
+                OportunidadesScreen(
+                    onBack = volver,
+                    onConectar = { oportunidad ->
+                        usuarioViewModel.seleccionarOportunidad(oportunidad.titulo)
+                        mainViewModel.navigateTo(Screen.Registro)
+                    }
+                )
+            }
+            composable(route = Screen.Institucion.route) {
+                InstitucionScreen()
+            }
 
-        // GUÍA 13: cámara y galería (PerfilViewModel compartido)
-        composable(route = Screen.Perfil.route) {
-            PerfilScreen(
-                viewModel = perfilViewModel,
-                onBack = volver
-            )
+            // GUÍA 11: formulario -> resumen (mismo UsuarioViewModel)
+            composable(route = Screen.Registro.route) {
+                RegistroScreen(
+                    viewModel = usuarioViewModel,
+                    onBack = volver,
+                    onRegistrado = { mainViewModel.navigateTo(Screen.Resumen) }
+                )
+            }
+            composable(route = Screen.Resumen.route) {
+                ResumenScreen(
+                    viewModel = usuarioViewModel,
+                    onFinalizar = {
+                        usuarioViewModel.reiniciar()
+                        mainViewModel.navigateTo(
+                            screen = Screen.Home,
+                            popUpToRoute = Screen.Home,
+                            singleTop = true
+                        )
+                    }
+                )
+            }
+
+            // GUÍA 12: estado persistente y animaciones
+            composable(route = Screen.ModoEspecial.route) {
+                ModoEspecialScreen(onBack = volver)
+            }
+
+            // GUÍA 13: cámara y galería (PerfilViewModel compartido)
+            composable(route = Screen.Perfil.route) {
+                PerfilScreen(
+                    viewModel = perfilViewModel,
+                    onBack = volver
+                )
+            }
         }
     }
 }

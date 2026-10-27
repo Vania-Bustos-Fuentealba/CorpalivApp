@@ -1,7 +1,6 @@
 package com.duocuc.corpalivapp.ui.components
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
@@ -28,7 +27,6 @@ val destinosNavegacion = listOf(
 )
 
 val destinosFuncionales = listOf(
-    DestinoNavegacion(Screen.Registro, "Registro", Icons.Default.Edit),
     DestinoNavegacion(Screen.Perfil, "Mi perfil", Icons.Default.Person),
     DestinoNavegacion(Screen.ModoEspecial, "Modo especial", Icons.Default.Settings)
 )

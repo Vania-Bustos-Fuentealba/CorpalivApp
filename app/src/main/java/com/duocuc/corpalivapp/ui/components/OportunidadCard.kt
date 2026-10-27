@@ -12,13 +12,17 @@ import com.duocuc.corpalivapp.data.model.OportunidadModel
 
 /**
  * G2 - COMPONENTE UI: OportunidadCard
+ * G10: al tocar la tarjeta o el botón se avisa con [onConectar] para abrir el registro.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OportunidadCard(
     oportunidad: OportunidadModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onConectar: () -> Unit = {}
 ) {
     Card(
+        onClick = onConectar,
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
@@ -123,7 +127,7 @@ fun OportunidadCard(
 
                 // Botón de interacción para empresas o donantes
                 Button(
-                    onClick = { /* Acción de contacto / vinculación */ },
+                    onClick = { /* Acción de contacto / vinculación */ onConectar() },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Conectar / Vincularse")

@@ -12,10 +12,11 @@ import com.duocuc.corpalivapp.navigation.Screen
  *
  * Componente reutilizable: cada pantalla indica cuál es su destino actual
  * ([selected]) y recibe el destino elegido por el usuario en [onNavigate].
+ * Ahora AppNavigation la muestra en todas las pantallas; [selected] es null si la pantalla no pertenece a ninguna sección.
  */
 @Composable
 fun AppBottomBar(
-    selected: Screen,
+    selected: Screen?,
     onNavigate: (Screen) -> Unit
 ) {
     NavigationBar {

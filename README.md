@@ -34,19 +34,20 @@ com.duocuc.corpalivapp/
 │   ├── local/          # Guía 12: EstadoDataStore (DataStore Preferences)
 │   ├── model/          # OportunidadModel, Persona, Empleado... + Guía 11: UsuarioUiState, UsuarioErrores
 │   └── network/        # Interfaces Retrofit y Cliente de API (ApiService, RetrofitClient)
+├── assets/institucion/ # Textos de "Quiénes somos" en Markdown (Corpaliv, Escuela Jan Van Dijk, Alba Lab)
 ├── navigation/         # Guías 10 y 11
 │   ├── Screen.kt           # Sealed class con las rutas tipo-safe
 │   ├── NavigationEvent.kt  # Eventos: NavigateTo, PopBackStack, NavigateUp
 │   └── AppNavigation.kt    # NavController + NavHost + ViewModels compartidos
 ├── ui/
 │   ├── components/     # OportunidadCard, AppTopBar, AppDrawerContent, AppBottomBar,
-│   │                   # DestinosNavegacion, ImagenInteligente (Guía 13)
+│   │                   # DestinosNavegacion, MarkdownText, ImagenInteligente (Guía 13)
 │   ├── screens/        # HomeScreen, HomeScreenAdaptativas, OportunidadesScreen, InstitucionScreen,
 │   │                   # RegistroScreen, ResumenScreen (G11), ModoEspecialScreen (G12), PerfilScreen (G13)
 │   ├── theme/          # Paleta de colores, tipografía y tema (Material 3)
 │   └── viewmodel/      # OportunidadViewModel, MainViewModel (navegación), UsuarioViewModel (G11),
-│                       # EstadoViewModel (G12), PerfilViewModel (G13)
-├── util/               # WindowSizeUtils (WindowSizeClass), ArchivosUtils (FileProvider)
+│                       # EstadoViewModel (G12), PerfilViewModel (G13), InstitucionViewModel
+├── util/               # WindowSizeUtils (WindowSizeClass), ArchivosUtils (FileProvider), RutUtils
 └── MainActivity.kt     # Punto de entrada: llama a AppNavigation()
 ```
 
@@ -59,8 +60,10 @@ Flujo de navegación (MVVM): `Pantalla → MainViewModel (emite NavigationEvent)
 | Ruta | Pantalla | Componentes de navegación |
 |------|----------|---------------------------|
 | `home_page` | Inicio adaptativo (Guía 8 y 9) | `TopAppBar` + `ModalNavigationDrawer` (Compact/Medium) o `PermanentNavigationDrawer` (Expanded) |
-| `oportunidades_page` | Oportunidades y proyectos RSE | `TopAppBar` con flecha de retorno + `NavigationBar` |
-| `institucion_page` | Quiénes somos | `NavigationBar` |
+| `oportunidades_page` | Oportunidades y proyectos RSE | `TopAppBar` con flecha de retorno |
+| `institucion_page` | Quiénes somos (Corpaliv, Escuela Jan Van Dijk y Alba Lab, leídos desde `.md`) | Selector de sección |
+
+La `NavigationBar` inferior se declara una sola vez en `AppNavigation` y se muestra en **todas** las pantallas.
 
 ---
 
@@ -68,8 +71,9 @@ Flujo de navegación (MVVM): `Pantalla → MainViewModel (emite NavigationEvent)
 
 - `UsuarioUiState` y `UsuarioErrores` modelan el estado del formulario (`data/model`).
 - `UsuarioViewModel` guarda el estado en un `MutableStateFlow` y valida con `validarFormulario()`; los errores se corrigen en tiempo real mientras se escribe.
-- `RegistroScreen` (`OutlinedTextField`, `PasswordVisualTransformation`, `Checkbox`, `Button`, `isError` + `supportingText`) y `ResumenScreen` comparten el **mismo** `UsuarioViewModel`, sin pasar argumentos por la ruta.
-- Rutas: `registro_page` → `interes_page` → `resumen_page`. Pruebas unitarias en `UsuarioViewModelTest`.
+- `RegistroScreen` (`OutlinedTextField`, desplegable de motivo, `Button`, `isError` + `supportingText`) y `ResumenScreen` comparten el **mismo** `UsuarioViewModel`, sin pasar argumentos por la ruta.
+- Flujo: `oportunidades_page` → clic en una oportunidad → `registro_page` (nombre, apellido, RUT, correo, dirección y motivo: aportar o postular) → barra de carga → `resumen_page` (agradecimiento y aviso de contacto en un día hábil por WhatsApp o teléfono).
+- Pruebas unitarias en `UsuarioViewModelTest`, `RutUtilsTest` y `MarkdownParserTest`.
 
 ## ✨ Guía 12 - Animaciones y estados
 

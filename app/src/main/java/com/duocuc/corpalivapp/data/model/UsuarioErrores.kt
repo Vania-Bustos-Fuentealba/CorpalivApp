@@ -5,11 +5,9 @@ package com.duocuc.corpalivapp.data.model
  */
 data class UsuarioErrores(
     val nombre: String? = null,
+    val apellido: String? = null,
+    val rut: String? = null,
     val correo: String? = null,
-    val clave: String? = null,
     val direccion: String? = null,
-    val terminos: String? = null,
-    val modalidad: String? = null,
-    val tipoEntidad: String? = null,
-    val mensaje: String? = null
+    val motivo: String? = null
 )

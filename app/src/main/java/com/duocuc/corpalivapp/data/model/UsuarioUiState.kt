@@ -5,16 +5,19 @@ package com.duocuc.corpalivapp.data.model
  */
 data class UsuarioUiState(
     val nombre: String = "",
+    val apellido: String = "",
+    val rut: String = "",
     val correo: String = "",
-    val clave: String = "",
     val direccion: String = "",
-    val aceptaTerminos: Boolean = false,
+    val motivo: String = "",
 
-    // G11: datos del interés de colaboración y estado del envío
-    val modalidad: String = "",
-    val tipoEntidad: String = "",
-    val mensaje: String = "",
-    val enviado: Boolean = false,
+    // Título de la oportunidad elegida antes de abrir el formulario
+    val oportunidad: String = "",
+
+    // G12: estado del envío simulado (barra de carga) y aviso de que terminó
+    val enviando: Boolean = false,
+    val progreso: Float = 0f,
+    val completado: Boolean = false,
 
     val errores: UsuarioErrores = UsuarioErrores()
 )

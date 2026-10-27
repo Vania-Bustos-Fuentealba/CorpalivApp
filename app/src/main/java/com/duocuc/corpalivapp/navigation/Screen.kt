@@ -23,9 +23,6 @@ sealed class Screen(val route: String) {
     /** GUÍA 11: resumen con los datos ingresados (comparte el UsuarioViewModel). */
     data object Resumen : Screen("resumen_page")
 
-    /** GUÍA 11: interés de colaboración (paso entre el registro y el resumen). */
-    data object Interes : Screen("interes_page")
-
     /** GUÍA 13: perfil con foto desde cámara o galería. */
     data object Perfil : Screen("perfil_page")
 
