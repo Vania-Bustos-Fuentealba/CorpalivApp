@@ -1,23 +1,22 @@
 package com.duocuc.corpalivapp.data.model
 
 /**
- * GUÍA 4 (POO - HERENCIA):
+ * G4:
  * La clase 'Empleado' hereda de 'Persona' extendiendo sus atributos
- * para el equipo profesional de Alba Lab y Escuela Jean Van Dijk.
+ * para los equipos de la ONG.
  */
 class Empleado(
     nombre: String,
     edad: Int,
     val puesto: String,
 
-    // GUÍA 4 (ENCAPSULAMIENTO):
+    // G4:
     // La propiedad 'salario' es 'private' para que solo sea accesible dentro de esta clase,
-    // resguardando la privacidad presupuestaria de CORPALIV.
     private val salario: Double
 ) : Persona(nombre, edad) {
 
     /**
-     * GUÍA 4 (MÉTODO ESPECÍFICO):
+     * G4 (METODO ESPECIFICO):
      * Imprime y retorna la función o rol dentro de la corporación.
      */
     fun mostrarPuesto(): String {
@@ -27,8 +26,8 @@ class Empleado(
     }
 
     /**
-     * GUÍA 4 (POLIMORFISMO):
-     * Sobrescribe (override) el comportamiento del método 'presentarse()'
+     * G4
+     * Sobrescribe (override) el comportamiento del metodo 'presentarse()'
      * entregando un saludo específico de un colaborador institucional.
      */
     override fun presentarse(): String {

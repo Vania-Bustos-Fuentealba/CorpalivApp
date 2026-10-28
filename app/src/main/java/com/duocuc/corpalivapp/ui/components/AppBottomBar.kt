@@ -8,14 +8,15 @@ import androidx.compose.runtime.Composable
 import com.duocuc.corpalivapp.navigation.Screen
 
 /**
- * GUÍA 10 - BARRA INFERIOR (NavigationBar / BottomBar)
+ * G10 - BARRA INFERIOR
  *
  * Componente reutilizable: cada pantalla indica cuál es su destino actual
  * ([selected]) y recibe el destino elegido por el usuario en [onNavigate].
+ * Ahora AppNavigation la muestra en todas las pantallas; [selected] es null si la pantalla no pertenece a ninguna sección.
  */
 @Composable
 fun AppBottomBar(
-    selected: Screen,
+    selected: Screen?,
     onNavigate: (Screen) -> Unit
 ) {
     NavigationBar {

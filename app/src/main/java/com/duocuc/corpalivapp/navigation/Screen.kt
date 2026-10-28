@@ -1,15 +1,12 @@
 package com.duocuc.corpalivapp.navigation
 
 /**
- * GUÍA 10 - PARTE 1 (Paso 3): RUTAS TIPO-SAFE CON SEALED CLASS
- *
- * Define en un único lugar todas las rutas de la app. Al ser una 'sealed class',
- * el compilador conoce todos los destinos posibles y evita errores de tipeo
- * al usar strings sueltos en la navegación.
+ * G10: RUTAS TIPO-SAFE CON SEALED CLASS
+ * Define en un único lugar todas las rutas de la app.
  */
 sealed class Screen(val route: String) {
 
-    // Rutas simples (sin argumentos): 'data object' es un singleton seguro de tipos.
+    // Rutas simples (sin argumentos).
 
     /** Pantalla de inicio (adaptativa, con TopAppBar y menú lateral). */
     data object Home : Screen("home_page")
@@ -20,8 +17,19 @@ sealed class Screen(val route: String) {
     /** Información institucional de CORPALIV (con NavigationBar). */
     data object Institucion : Screen("institucion_page")
 
-    // Ejemplo de ruta con argumentos (no se usa en el NavHost todavía, pero deja
-    // lista la forma correcta de construirla): 'data class' encapsula el argumento.
+    /** GUÍA 11: formulario de registro de usuario. */
+    data object Registro : Screen("registro_page")
+
+    /** GUÍA 11: resumen con los datos ingresados (comparte el UsuarioViewModel). */
+    data object Resumen : Screen("resumen_page")
+
+    /** GUÍA 13: perfil con foto desde cámara o galería. */
+    data object Perfil : Screen("perfil_page")
+
+    /** GUÍA 12: interruptor con animaciones. */
+    data object ModoEspecial : Screen("modo_especial_page")
+
+    // Ejemplo de ruta con argumentos 'data class' encapsula el argumento.
     data class Detail(val itemId: String) : Screen("detail_page/{itemId}") {
         override fun buildRoute(): String = route.replace("{itemId}", itemId)
     }

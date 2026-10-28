@@ -1,100 +1,117 @@
 package com.duocuc.corpalivapp.ui.screens
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.duocuc.corpalivapp.navigation.Screen
-import com.duocuc.corpalivapp.ui.components.AppBottomBar
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.duocuc.corpalivapp.ui.components.MarkdownText
+import com.duocuc.corpalivapp.ui.viewmodel.InstitucionUiState
+import com.duocuc.corpalivapp.ui.viewmodel.InstitucionViewModel
+import com.duocuc.corpalivapp.ui.viewmodel.SeccionInstitucion
 
 /**
- * GUÍA 10 - PANTALLA 3: INFORMACIÓN INSTITUCIONAL
- *
+ * G10: INFORMACIÓN INSTITUCIONAL
  * Muestra a quién está dirigida la plataforma. Incluye la barra inferior
- * (NavigationBar) para recorrer las pantallas principales de la app.
+ * Ahora la barra inferior la muestra AppNavigation y el texto de cada sección se lee de un .md en assets/institucion.
  */
 @Composable
 fun InstitucionScreen(
-    onNavigate: (Screen) -> Unit = {}
+    viewModel: InstitucionViewModel = viewModel()
 ) {
-    Scaffold(
-        bottomBar = {
-            AppBottomBar(selected = Screen.Institucion, onNavigate = onNavigate)
-        }
-    ) { innerPadding ->
+    val estado by viewModel.estado.collectAsStateWithLifecycle()
+
+    InstitucionContenido(
+        estado = estado,
+        onSeleccion = viewModel::seleccionar
+    )
+}
+
+/** Parte visual sin ViewModel, para poder verla en el @Preview. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun InstitucionContenido(
+    estado: InstitucionUiState,
+    onSeleccion: (SeccionInstitucion) -> Unit
+) {
+    Scaffold { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(horizontal = 16.dp, vertical = 16.dp)
         ) {
             Text(
                 text = "Quiénes somos",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
-                textAlign = TextAlign.Center
-            )
-
-            TarjetaInstitucional(
-                titulo = "CORPALIV",
-                descripcion = "Corporación de Padres y Amigos por el Limitado Visual."
-            )
-            TarjetaInstitucional(
-                titulo = "Escuela Especial Jean Van Dijk",
-                descripcion = "Comunidad educativa que recibe el apoyo de empresas y donantes aliados."
-            )
-            TarjetaInstitucional(
-                titulo = "Alba Lab",
-                descripcion = "Red sociolaboral orientada a la vinculación laboral de jóvenes con discapacidad."
-            )
-
-            Button(
-                onClick = { onNavigate(Screen.Home) },
+                textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Volver al Inicio")
-            }
-        }
-    }
-}
+            )
 
-@Composable
-private fun TarjetaInstitucional(titulo: String, descripcion: String) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = titulo,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = descripcion,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(top = 4.dp)
-            )
+            // Selector de sección: Corpaliv, Escuela Jan Van Dijk o Alba Lab
+            Row(
+                modifier = Modifier
+                    .horizontalScroll(rememberScrollState())
+                    .padding(vertical = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                SeccionInstitucion.entries.forEach { seccion ->
+                    FilterChip(
+                        selected = seccion == estado.seccion,
+                        onClick = { onSeleccion(seccion) },
+                        label = { Text(seccion.etiqueta) }
+                    )
+                }
+            }
+
+            Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                when {
+                    estado.error -> Text(
+                        text = "No se pudo cargar la información. Intenta nuevamente.",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+
+                    estado.contenido == null -> CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+
+                    // key: al cambiar de sección el texto vuelve al inicio
+                    else -> key(estado.seccion) {
+                        MarkdownText(
+                            markdown = estado.contenido,
+                            modifier = Modifier
+                                .verticalScroll(rememberScrollState())
+                                .padding(bottom = 16.dp)
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -102,5 +119,10 @@ private fun TarjetaInstitucional(titulo: String, descripcion: String) {
 @Preview(showBackground = true)
 @Composable
 fun InstitucionScreenPreview() {
-    InstitucionScreen()
+    InstitucionContenido(
+        estado = InstitucionUiState(
+            contenido = "# Corpaliv\n\nTexto de ejemplo con **negrita**.\n\n- Primer punto\n- Segundo punto"
+        ),
+        onSeleccion = {}
+    )
 }

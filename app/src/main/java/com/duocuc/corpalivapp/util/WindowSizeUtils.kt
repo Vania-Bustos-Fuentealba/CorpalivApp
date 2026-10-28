@@ -9,9 +9,8 @@ import androidx.compose.ui.platform.LocalContext
 import kotlin.OptIn
 
 /**
- * GUÍA 9 - UTILITARIO DE TAMAÑO DE VENTANA:
- * Función composable reutilizable para calcular la WindowSizeClass actual
- * de la actividad en tiempo de ejecución.
+ * G9 - Tamaño de Pantalla:
+ * Función composable reutilizable para calcular la WindowSizeClass actual de la actividad en tiempo de ejecución.
  */
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable

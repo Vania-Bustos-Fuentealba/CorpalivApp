@@ -13,24 +13,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.duocuc.corpalivapp.navigation.Screen
-import com.duocuc.corpalivapp.ui.components.AppBottomBar
+import com.duocuc.corpalivapp.data.model.OportunidadModel
 import com.duocuc.corpalivapp.ui.components.OportunidadCard
 import com.duocuc.corpalivapp.ui.viewmodel.OportunidadUiState
 import com.duocuc.corpalivapp.ui.viewmodel.OportunidadViewModel
 
 /**
- * GUÍA 10 - PANTALLA 2: OPORTUNIDADES
- *
- * Combina TopAppBar (con flecha para volver) y NavigationBar inferior.
- * La navegación no se hace aquí: la pantalla solo avisa mediante [onBack] y
- * [onNavigate], y el MainViewModel emite el evento correspondiente.
+ * G10 PANTALLA 2: OPORTUNIDADES.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OportunidadesScreen(
     onBack: () -> Unit = {},
-    onNavigate: (Screen) -> Unit = {},
+    onConectar: (OportunidadModel) -> Unit = {},
     viewModel: OportunidadViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -51,9 +46,6 @@ fun OportunidadesScreen(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 )
             )
-        },
-        bottomBar = {
-            AppBottomBar(selected = Screen.Oportunidades, onNavigate = onNavigate)
         }
     ) { paddingValues ->
         Box(
@@ -74,7 +66,10 @@ fun OportunidadesScreen(
                         contentPadding = PaddingValues(vertical = 12.dp)
                     ) {
                         items(state.oportunidades) { oportunidad ->
-                            OportunidadCard(oportunidad = oportunidad)
+                            OportunidadCard(
+                                oportunidad = oportunidad,
+                                onConectar = { onConectar(oportunidad) }
+                            )
                         }
                     }
                 }

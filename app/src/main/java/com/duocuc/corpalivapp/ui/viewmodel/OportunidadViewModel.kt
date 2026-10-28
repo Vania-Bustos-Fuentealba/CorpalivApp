@@ -15,8 +15,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 /**
- * GUÍA 2 - ESTRUCTURA CONDICIONAL PREPARADA PARA 'WHEN':
- * Sealed Interface para representar los estados finitos de la UI.
+ * G2 - ESTRUCTURA CONDICIONAL:
  * Permite que la vista (OportunidadesScreen) evalúe exhaustivamente cada estado mediante 'when'.
  */
 sealed interface OportunidadUiState {
@@ -32,10 +31,10 @@ class OportunidadViewModel : ViewModel() {
     val uiState: StateFlow<OportunidadUiState> = _uiState.asStateFlow()
 
     init {
-        // GUÍA 4 - CREACIÓN DE OBJETOS Y DEMOSTRACIÓN DE POO:
+        // G4 - CREACIÓN DE OBJETOS Y DEMOSTRACIÓN DE POO:
         demostrarPOOGuia4()
 
-        // GUÍA 5 - CORUTINAS Y SINTAXIS AVANZADA (Procesamiento Asíncrono de Login):
+        // G5 - CORUTINAS Y SINTAXIS AVANZADA:
         probarAutenticacionGuia5()
 
         cargarOportunidades()
@@ -43,13 +42,13 @@ class OportunidadViewModel : ViewModel() {
 
     /**
      * GUÍA 5 - FUNCIÓN ASÍNCRONA (suspend fun):
-     * Simula la verificación de credenciales con una demora no bloqueante de red (delay 2000 ms).
+     * Se simula la verificación de credenciales.
      */
     suspend fun autenticarUsuario(usuario: String, contrasena: String): ResultadoLogin {
         // Pausa la ejecución de la corutina por 2 segundos sin bloquear el hilo UI
         delay(2000L)
 
-        // Lógica de validación requerida por la Guía 5
+        // Lógica de validación de credenciales
         return if (usuario == "admin" && contrasena == "1234") {
             val perfil = PerfilUsuario(
                 nombreUsuario = "Coordinador CORPALIV",
@@ -62,8 +61,8 @@ class OportunidadViewModel : ViewModel() {
     }
 
     /**
-     * GUÍA 5 - EJECUCIÓN EN CORUTINA Y MANEJO DE ESTADOS:
-     * Ejecuta el flujo asíncrono utilizando viewModelScope para probar casos de Exito y Error.
+     * G5 - EJECUCIÓN EN CORUTINA Y MANEJO DE ESTADOS:
+     * Ejecuta el flujo asíncrono para probar casos de Exito y Error.
      */
     private fun probarAutenticacionGuia5() {
         viewModelScope.launch {
@@ -88,7 +87,7 @@ class OportunidadViewModel : ViewModel() {
     }
 
     /**
-     * GUÍA 5 - EXPRESIÓN 'WHEN' Y FUNCIÓN DE ÁMBITO (.let):
+     * GUÍA 5 - EXPRESIONES Y FUNCION DE AMBITO:
      * Procesa la sealed class ResultadoLogin y aplica '.let' en el caso de Exito.
      */
     private fun procesarResultadoLogin(resultado: ResultadoLogin) {
@@ -113,10 +112,10 @@ class OportunidadViewModel : ViewModel() {
 
     /**
      * GUÍA 4: Instanciación explícita de objetos 'Persona' y 'Empleado' para verificar
-     * la Herencia, Encapsulamiento y Polimorfismo exigidos en la evaluación.
+     * la Herencia, Encapsulamiento y Polimorfismo.
      */
     private fun demostrarPOOGuia4() {
-        println("=== DEMOSTRACIÓN GUÍA 4 - POO CORPALIV ===")
+        println("=== G4 - POO CORPALIV ===")
 
         // 1. Instancia de la clase base Persona
         val personaBase: Persona = Persona(
@@ -124,7 +123,7 @@ class OportunidadViewModel : ViewModel() {
             edad = 28
         )
 
-        // 2. Instancia de la subclase Empleado (Herencia + Encapsulamiento de 'salario')
+        // 2. Instancia de la subclase Empleado
         val empleadoCorpaliv: Empleado = Empleado(
             nombre = "Roberto Morales",
             edad = 35,
@@ -134,10 +133,10 @@ class OportunidadViewModel : ViewModel() {
 
         // 3. Verificación de Polimorfismo al invocar presentarse() en ambos objetos
         println("--- Invocación Persona Base ---")
-        personaBase.presentarse() // Saludo genérico
+        personaBase.presentarse()
 
-        println("--- Invocación Empleado (Polimorfismo con override) ---")
-        empleadoCorpaliv.presentarse() // Saludo específico de Empleado
+        println("--- Invocación Empleado ---")
+        empleadoCorpaliv.presentarse()
 
         println("--- Método Específico de Empleado ---")
         empleadoCorpaliv.mostrarPuesto()
@@ -151,7 +150,7 @@ class OportunidadViewModel : ViewModel() {
                 // Consulta asíncrona a la API de CORPALIV mediante Retrofit
                 val listaApi = RetrofitClient.apiService.getOportunidades()
 
-                // GUÍA 4 - INTEGRACIÓN DE OBJETOS EN EL FLUJO:
+                // G4 - INTEGRACIÓN DE OBJETOS EN EL FLUJO:
                 // Se asigna una instancia de Empleado como responsable a cada oportunidad obtenida.
                 val coordinadorGenerico = Empleado(
                     nombre = "Roberto Morales",
@@ -166,7 +165,7 @@ class OportunidadViewModel : ViewModel() {
 
                 _uiState.value = OportunidadUiState.Success(listaConResponsables)
             } catch (e: Exception) {
-                // GUÍA 2 - NULL SAFETY (Operador Elvis '?:') + RESPALDO DE DATOS LOCALES:
+                // G2 - NULL SAFETY + RESPALDO DE DATOS LOCALES:
                 // Si la red o el certificado SSL fallan, se cargan datos de prueba para asegurar
                 // que la aplicación siempre visualice las tarjetas y ejecute la lógica evaluable.
                 val coordinadorAlbaLab = Empleado(
@@ -183,10 +182,10 @@ class OportunidadViewModel : ViewModel() {
                         categoria = "RSE Empresarial",
                         descripcion = "Programa de capacitación en oficios adaptados para jóvenes con discapacidad múltiple.",
                         impactoSocial = "12 participantes capacitados para vinculación laboral este año.",
-                        imagenUrl = "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=600",
+                        imagenUrl = "https://images.unsplash.com/photo-1529070538774-1843cb3265df?q=80&w=600",
                         contactoEmail = "rse@corpaliv-demo.cl",
-                        metaFinanciamiento = 5000000.0,
-                        montoRecaudado = 1200000.0,
+                        metaFinanciamiento = 5000000,
+                        montoRecaudado = 1200000,
                         responsable = coordinadorAlbaLab
                     ),
                     OportunidadModel(
@@ -195,10 +194,10 @@ class OportunidadViewModel : ViewModel() {
                         categoria = "Donación Directa",
                         descripcion = "Fondo destinado a la adquisición de material didáctico adaptado y sillas ergométricas.",
                         impactoSocial = "Beneficia directamente a 30 estudiantes en su desarrollo autónomo.",
-                        imagenUrl = "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=600",
+                        imagenUrl = "https://plus.unsplash.com/premium_photo-1661380797814-d0bcc01342b7?q=80&w=600",
                         contactoEmail = null, // GUÍA 2: Para validar Null Safety
-                        metaFinanciamiento = 3000000.0,
-                        montoRecaudado = 2500000.0,
+                        metaFinanciamiento = 3000000,
+                        montoRecaudado = 250000,
                         responsable = coordinadorAlbaLab
                     )
                 )

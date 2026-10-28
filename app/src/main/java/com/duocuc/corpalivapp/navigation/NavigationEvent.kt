@@ -1,11 +1,8 @@
 package com.duocuc.corpalivapp.navigation
 
 /**
- * GUÍA 10 - PARTE 1 (Paso 4): EVENTOS DE NAVEGACIÓN
- *
- * Representa lo que la UI le pide al ViewModel: "quiero ir a X" o "quiero volver".
- * El ViewModel emite estos eventos y la MainActivity (que tiene el NavController)
- * los ejecuta. Así las pantallas no dependen del NavController.
+ * G10:
+ * NAVEGACIÓN ENTRE PANTALLAS. Así las pantallas no dependen del NavController.
  */
 sealed class NavigationEvent {
 
