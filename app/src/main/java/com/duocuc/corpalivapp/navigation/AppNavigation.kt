@@ -132,7 +132,7 @@ fun AppNavigation(
                 )
             }
             composable(route = Screen.Institucion.route) {
-                InstitucionScreen()
+                InstitucionScreen(onBack = volver)
             }
 
             // GUÍA 11: formulario -> resumen (mismo UsuarioViewModel)
