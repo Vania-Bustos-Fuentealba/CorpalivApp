@@ -26,6 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.duocuc.corpalivapp.ui.components.AppTopBar
 import com.duocuc.corpalivapp.ui.components.MarkdownEnBloques
 import com.duocuc.corpalivapp.ui.theme.coloresChipAzul
 import com.duocuc.corpalivapp.ui.viewmodel.InstitucionUiState
@@ -37,16 +38,19 @@ import com.duocuc.corpalivapp.ui.viewmodel.SeccionInstitucion
  * Muestra a quién está dirigida la plataforma. Incluye la barra inferior
  * Ahora la barra inferior la muestra AppNavigation y el texto de cada sección se lee de un .md en assets/institucion.
  * Las dos secciones (Escuela Jan Van Dijk y Alba Lab) van una a cada costado y se muestran en bloques.
+ * Tiene una barra superior con una flecha para volver al inicio.
  */
 @Composable
 fun InstitucionScreen(
-    viewModel: InstitucionViewModel = viewModel()
+    viewModel: InstitucionViewModel = viewModel(),
+    onBack: () -> Unit = {}
 ) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
 
     InstitucionContenido(
         estado = estado,
-        onSeleccion = viewModel::seleccionar
+        onSeleccion = viewModel::seleccionar,
+        onBack = onBack
     )
 }
 
@@ -55,9 +59,12 @@ fun InstitucionScreen(
 @Composable
 private fun InstitucionContenido(
     estado: InstitucionUiState,
-    onSeleccion: (SeccionInstitucion) -> Unit
+    onSeleccion: (SeccionInstitucion) -> Unit,
+    onBack: () -> Unit
 ) {
-    Scaffold { innerPadding ->
+    Scaffold(
+        topBar = { AppTopBar(titulo = "Institución", onBack = onBack) }
+    ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -132,6 +139,7 @@ fun InstitucionScreenPreview() {
         estado = InstitucionUiState(
             contenido = "# Corpaliv\n\nTexto de ejemplo con **negrita**.\n\n- Primer punto\n- Segundo punto"
         ),
-        onSeleccion = {}
+        onSeleccion = {},
+        onBack = {}
     )
 }
