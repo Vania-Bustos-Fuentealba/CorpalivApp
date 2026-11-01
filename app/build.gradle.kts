@@ -63,6 +63,9 @@ dependencies {
     // G12 - Dependencia local del estado
     implementation(libs.androidx.datastore.preferences)
 
+    // Dashboard: los aportes se guardan como lista JSON
+    implementation("com.google.code.gson:gson:2.10.1")
+
     // Dependencia en Gradle
     implementation("androidx.compose.material3:material3-window-size-class")
 

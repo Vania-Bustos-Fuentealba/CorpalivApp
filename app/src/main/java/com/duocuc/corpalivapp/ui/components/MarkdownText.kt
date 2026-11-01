@@ -3,9 +3,11 @@ package com.duocuc.corpalivapp.ui.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -77,6 +79,26 @@ internal fun parsearMarkdown(markdown: String): List<BloqueMarkdown> {
     return bloques
 }
 
+/**
+ * Agrupa los bloques en secciones: la primera llega hasta el primer título de nivel 2
+ * y cada título de nivel 2 abre una sección nueva.
+ */
+internal fun agruparEnSecciones(bloques: List<BloqueMarkdown>): List<List<BloqueMarkdown>> {
+    val secciones = mutableListOf<List<BloqueMarkdown>>()
+    var actual = mutableListOf<BloqueMarkdown>()
+
+    for (bloque in bloques) {
+        if (bloque is BloqueMarkdown.Titulo && bloque.nivel == 2 && actual.isNotEmpty()) {
+            secciones.add(actual)
+            actual = mutableListOf()
+        }
+        actual.add(bloque)
+    }
+    if (actual.isNotEmpty()) secciones.add(actual)
+
+    return secciones
+}
+
 // Quita los enlaces y aplica negrita a lo que va entre ** **
 private fun textoEnriquecido(texto: String): AnnotatedString {
     val limpio = REGEX_ENLACE.replace(texto) { it.groupValues[1] }
@@ -103,7 +125,48 @@ fun MarkdownText(
     modifier: Modifier = Modifier
 ) {
     val bloques = remember(markdown) { parsearMarkdown(markdown) }
+    BloquesMarkdown(bloques = bloques, modifier = modifier)
+}
 
+/**
+ * Muestra el Markdown separado en bloques: la introducción va sin marco y cada sección
+ * (título de nivel 2) va dentro de su propia tarjeta con borde, con un estilo sobrio.
+ */
+@Composable
+fun MarkdownEnBloques(
+    markdown: String,
+    modifier: Modifier = Modifier
+) {
+    val secciones = remember(markdown) { agruparEnSecciones(parsearMarkdown(markdown)) }
+
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        secciones.forEach { seccion ->
+            val primero = seccion.first()
+            val esIntroduccion = !(primero is BloqueMarkdown.Titulo && primero.nivel == 2)
+
+            if (esIntroduccion) {
+                BloquesMarkdown(bloques = seccion)
+            } else {
+                OutlinedCard(modifier = Modifier.fillMaxWidth()) {
+                    BloquesMarkdown(
+                        bloques = seccion,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+// Dibuja cada bloque con los estilos de MaterialTheme
+@Composable
+private fun BloquesMarkdown(
+    bloques: List<BloqueMarkdown>,
+    modifier: Modifier = Modifier
+) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp)

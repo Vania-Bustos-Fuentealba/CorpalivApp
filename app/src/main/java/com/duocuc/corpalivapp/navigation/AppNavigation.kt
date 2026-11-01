@@ -17,16 +17,22 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.duocuc.corpalivapp.data.model.RolUsuario
 import com.duocuc.corpalivapp.ui.components.AppBottomBar
+import com.duocuc.corpalivapp.ui.screens.DashboardScreen
 import com.duocuc.corpalivapp.ui.screens.HomeScreenAdaptive
 import com.duocuc.corpalivapp.ui.screens.InstitucionScreen
+import com.duocuc.corpalivapp.ui.screens.LoginScreen
 import com.duocuc.corpalivapp.ui.screens.ModoEspecialScreen
 import com.duocuc.corpalivapp.ui.screens.OportunidadesScreen
 import com.duocuc.corpalivapp.ui.screens.PerfilScreen
 import com.duocuc.corpalivapp.ui.screens.RegistroScreen
 import com.duocuc.corpalivapp.ui.screens.ResumenScreen
+import com.duocuc.corpalivapp.ui.viewmodel.DashboardViewModel
+import com.duocuc.corpalivapp.ui.viewmodel.InicioViewModel
 import com.duocuc.corpalivapp.ui.viewmodel.MainViewModel
 import com.duocuc.corpalivapp.ui.viewmodel.PerfilViewModel
+import com.duocuc.corpalivapp.ui.viewmodel.SesionViewModel
 import com.duocuc.corpalivapp.ui.viewmodel.UsuarioViewModel
 
 /**
@@ -38,9 +44,15 @@ import com.duocuc.corpalivapp.ui.viewmodel.UsuarioViewModel
 fun AppNavigation(
     mainViewModel: MainViewModel = viewModel(),
     usuarioViewModel: UsuarioViewModel = viewModel(),
-    perfilViewModel: PerfilViewModel = viewModel()
+    perfilViewModel: PerfilViewModel = viewModel(),
+    dashboardViewModel: DashboardViewModel = viewModel(),
+    inicioViewModel: InicioViewModel = viewModel(),
+    sesionViewModel: SesionViewModel = viewModel()
 ) {
     val navController = rememberNavController()
+
+    // Cuenta con sesión iniciada (null = nadie ha ingresado)
+    val sesion by sesionViewModel.usuario.collectAsStateWithLifecycle()
 
     // Aborda los eventos de navegación emitidos por el ViewModel y los ejecuta.
     LaunchedEffect(Unit) {
@@ -102,9 +114,11 @@ fun AppNavigation(
         ) {
             composable(route = Screen.Home.route) {
                 val fotoPerfil by perfilViewModel.imagenUri.collectAsStateWithLifecycle()
+                val textoInicio by inicioViewModel.contenido.collectAsStateWithLifecycle()
                 HomeScreenAdaptive(
                     onNavigate = navegarDesdeMenu,
-                    fotoPerfil = fotoPerfil
+                    fotoPerfil = fotoPerfil,
+                    contenido = textoInicio
                 )
             }
             composable(route = Screen.Oportunidades.route) {
@@ -126,7 +140,11 @@ fun AppNavigation(
                 RegistroScreen(
                     viewModel = usuarioViewModel,
                     onBack = volver,
-                    onRegistrado = { mainViewModel.navigateTo(Screen.Resumen) }
+                    onRegistrado = {
+                        // Los aportes (personas que aportan y empresas) quedan guardados para el Dashboard
+                        usuarioViewModel.construirRegistro()?.let { dashboardViewModel.guardar(it) }
+                        mainViewModel.navigateTo(Screen.Resumen)
+                    }
                 )
             }
             composable(route = Screen.Resumen.route) {
@@ -143,17 +161,48 @@ fun AppNavigation(
                 )
             }
 
+            // G12: aportes registrados; solo con sesión de administrador (si no, pide iniciar sesión)
+            composable(route = Screen.Dashboard.route) {
+                if (sesion?.rol == RolUsuario.ADMINISTRADOR) {
+                    DashboardScreen(
+                        viewModel = dashboardViewModel,
+                        onBack = volver
+                    )
+                } else {
+                    LoginScreen(viewModel = sesionViewModel, onBack = volver)
+                }
+            }
+
             // GUÍA 12: estado persistente y animaciones
             composable(route = Screen.ModoEspecial.route) {
                 ModoEspecialScreen(onBack = volver)
             }
 
             // GUÍA 13: cámara y galería (PerfilViewModel compartido)
+            // El perfil es de la cuenta: sin sesión se pide iniciarla y al ingresar se muestra el perfil
             composable(route = Screen.Perfil.route) {
-                PerfilScreen(
-                    viewModel = perfilViewModel,
-                    onBack = volver
-                )
+                val cuenta = sesion
+
+                if (cuenta == null) {
+                    LoginScreen(viewModel = sesionViewModel, onBack = volver)
+                } else {
+                    PerfilScreen(
+                        viewModel = perfilViewModel,
+                        sesion = cuenta,
+                        onDashboard = { mainViewModel.navigateTo(Screen.Dashboard) },
+                        onCerrarSesion = {
+                            // La foto es de la cuenta: se quita al cerrar la sesión
+                            perfilViewModel.quitarImagen()
+                            sesionViewModel.cerrarSesion()
+                            mainViewModel.navigateTo(
+                                screen = Screen.Home,
+                                popUpToRoute = Screen.Home,
+                                singleTop = true
+                            )
+                        },
+                        onBack = volver
+                    )
+                }
             }
         }
     }

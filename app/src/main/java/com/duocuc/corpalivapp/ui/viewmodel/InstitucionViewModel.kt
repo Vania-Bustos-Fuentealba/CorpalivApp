@@ -14,14 +14,13 @@ import kotlinx.coroutines.withContext
  * G10: secciones de "Quiénes somos". Cada una lee su texto desde un .md en assets/institucion.
  */
 enum class SeccionInstitucion(val etiqueta: String, val archivo: String) {
-    CORPALIV("Corpaliv", "institucion/corpaliv.md"),
     ESCUELA("Escuela Jan Van Dijk", "institucion/escuela_jan_van_dijk.md"),
     ALBA_LAB("Alba Lab", "institucion/alba_lab.md")
 }
 
 /** Sección elegida y su texto; contenido null = cargando, error = no se pudo leer el archivo. */
 data class InstitucionUiState(
-    val seccion: SeccionInstitucion = SeccionInstitucion.CORPALIV,
+    val seccion: SeccionInstitucion = SeccionInstitucion.ESCUELA,
     val contenido: String? = null,
     val error: Boolean = false
 )
@@ -38,7 +37,7 @@ class InstitucionViewModel(application: Application) : AndroidViewModel(applicat
     private val cache = mutableMapOf<SeccionInstitucion, String>()
 
     init {
-        seleccionar(SeccionInstitucion.CORPALIV)
+        seleccionar(SeccionInstitucion.ESCUELA)
     }
 
     /** Muestra la sección elegida, leyendo su archivo fuera del hilo principal. */
