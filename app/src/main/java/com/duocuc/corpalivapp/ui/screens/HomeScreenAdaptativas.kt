@@ -1,22 +1,19 @@
 package com.duocuc.corpalivapp.ui.screens
 
 import android.net.Uri
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -36,15 +33,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.duocuc.corpalivapp.R
 import com.duocuc.corpalivapp.navigation.Screen
 import com.duocuc.corpalivapp.ui.components.AppDrawerContent
+import com.duocuc.corpalivapp.ui.components.MarkdownEnBloques
 import com.duocuc.corpalivapp.util.obtenerWindowSizeClass
 import kotlinx.coroutines.launch
 import kotlin.OptIn
@@ -53,7 +47,7 @@ import kotlin.OptIn
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreenCompacta(
-    onNavigateToOportunidades: () -> Unit = {},
+    contenido: String? = TEXTO_MUESTRA,
     onMenuClick: (() -> Unit)? = null
 ) {
     Scaffold(
@@ -71,36 +65,12 @@ fun HomeScreenCompacta(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = "¡Bienvenido a CORPALIV!",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-                textAlign = TextAlign.Center
-            )
-            Image(
-                painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                contentDescription = "Logo CORPALIV",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(140.dp),
-                contentScale = ContentScale.Fit
-            )
-            Text(
-                text = "Red de apoyo para Escuela Especial Jean Van Dijk y Taller Ocupacional Alba Lab.",
-                style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Center
-            )
-            Button(
-                onClick = onNavigateToOportunidades,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Ver Oportunidades RSE")
-            }
+            InformacionCorpaliv(contenido)
         }
     }
 }
@@ -111,7 +81,7 @@ fun HomeScreenCompacta(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreenMediana(
-    onNavigateToOportunidades: () -> Unit = {},
+    contenido: String? = TEXTO_MUESTRA,
     onMenuClick: (() -> Unit)? = null
 ) {
     Scaffold(
@@ -125,62 +95,22 @@ fun HomeScreenMediana(
             )
         }
     ) { innerPadding ->
+        // El contenido se centra y no se estira más de 720 dp para que el texto sea legible
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp),
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = "Portal Institucional CORPALIV",
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
-            )
-
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .padding(20.dp)
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                        contentDescription = "Logo CORPALIV Mediano",
-                        modifier = Modifier
-                            .width(180.dp)
-                            .height(120.dp),
-                        contentScale = ContentScale.Fit
-                    )
-                    Spacer(modifier = Modifier.width(20.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Inclusión Social y Educativa",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Gestiona programas de financiamiento y proyectos RSE con mayor espacio en pantalla.",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                }
-            }
-
-            Button(
-                onClick = onNavigateToOportunidades,
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth(0.6f)
-                    .height(50.dp)
+                    .widthIn(max = 720.dp)
+                    .padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Explorar Proyectos RSE")
+                InformacionCorpaliv(contenido)
             }
         }
     }
@@ -191,7 +121,7 @@ fun HomeScreenMediana(
 // ======================================================================================
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreenExpandida(onNavigateToOportunidades: () -> Unit = {}) {
+fun HomeScreenExpandida(contenido: String? = TEXTO_MUESTRA) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -202,77 +132,44 @@ fun HomeScreenExpandida(onNavigateToOportunidades: () -> Unit = {}) {
             )
         }
     ) { innerPadding ->
-        Row(
+        // Contenido centrado, con un ancho máximo para que el texto sea legible
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(32.dp),
-            horizontalArrangement = Arrangement.spacedBy(32.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Panel Izquierdo: Logotipo y Marca
-            Card(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight(),
-                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(24.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                        contentDescription = "Logo Expandido",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp),
-                        contentScale = ContentScale.Fit
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "Corporación CORPALIV",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-
-            // Panel Derecho: Descripción e Interacción
-            Column(
-                modifier = Modifier
-                    .weight(1.5f)
-                    .fillMaxHeight(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.Start
-            ) {
-                Text(
-                    text = "Bienvenido a la Plataforma Adaptativa de Gestión",
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "Accede a la información consolidada de proyectos para la Escuela Especial Jean Van Dijk y el taller ocupacional Alba Lab.",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                Spacer(modifier = Modifier.height(32.dp))
-                Button(
-                    onClick = onNavigateToOportunidades,
-                    modifier = Modifier
-                        .fillMaxWidth(0.5f)
-                        .height(56.dp)
-                ) {
-                    Text("Ver Oportunidades y Proyectos")
-                }
+            Column(modifier = Modifier.widthIn(max = 960.dp).padding(32.dp)) {
+                InformacionCorpaliv(contenido)
             }
         }
     }
 }
+
+// Información de Corpaliv en bloques; mientras el texto carga se muestra un indicador
+@Composable
+private fun InformacionCorpaliv(contenido: String?) {
+    if (contenido == null) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(32.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+    } else {
+        MarkdownEnBloques(markdown = contenido)
+    }
+}
+
+// Texto de ejemplo para los @Preview (en la app el texto sale de assets/institucion/corpaliv.md)
+private const val TEXTO_MUESTRA =
+    "# CORPALIV\n\nCorporación de Padres y Amigos por el Limitado Visual.\n\n" +
+        "## Misión\n\nAcompañar el desarrollo de niños, niñas, jóvenes y adultos con discapacidad múltiple.\n\n" +
+        "## Visión\n\nUn país sin barreras para la discapacidad múltiple.\n\n" +
+        "## Valores\n\n- Compromiso\n- Respeto\n- Empatía\n- Solidaridad"
 
 // ======================================================================================
 // 4. CONTENEDOR ADAPTATIVO PRINCIPAL (Guía 9 + Guía 10)
@@ -332,19 +229,19 @@ private fun HomeConMenuModal(
 @Composable
 fun HomeScreenAdaptive(
     onNavigate: (Screen) -> Unit = {},
-    fotoPerfil: Uri? = null
+    fotoPerfil: Uri? = null,
+    contenido: String? = null
 ) {
     val windowSizeClass = obtenerWindowSizeClass()
-    val irAOportunidades = { onNavigate(Screen.Oportunidades) }
 
     // Evaluador del tamaño de ancho de ventana
     when (windowSizeClass.widthSizeClass) {
         WindowWidthSizeClass.Compact -> HomeConMenuModal(onNavigate, fotoPerfil) { abrirMenu ->
-            HomeScreenCompacta(irAOportunidades, abrirMenu)
+            HomeScreenCompacta(contenido = contenido, onMenuClick = abrirMenu)
         }
 
         WindowWidthSizeClass.Medium -> HomeConMenuModal(onNavigate, fotoPerfil) { abrirMenu ->
-            HomeScreenMediana(irAOportunidades, abrirMenu)
+            HomeScreenMediana(contenido = contenido, onMenuClick = abrirMenu)
         }
 
         WindowWidthSizeClass.Expanded -> PermanentNavigationDrawer(
@@ -358,7 +255,7 @@ fun HomeScreenAdaptive(
                 }
             }
         ) {
-            HomeScreenExpandida(irAOportunidades)
+            HomeScreenExpandida(contenido = contenido)
         }
     }
 }

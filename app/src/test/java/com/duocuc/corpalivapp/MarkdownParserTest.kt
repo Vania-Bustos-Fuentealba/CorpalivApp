@@ -1,6 +1,7 @@
 package com.duocuc.corpalivapp
 
 import com.duocuc.corpalivapp.ui.components.BloqueMarkdown
+import com.duocuc.corpalivapp.ui.components.agruparEnSecciones
 import com.duocuc.corpalivapp.ui.components.parsearMarkdown
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -26,6 +27,18 @@ class MarkdownParserTest {
             ),
             bloques
         )
+    }
+
+    @Test
+    fun agrupaEnSecciones_laIntroduccionYCadaTituloDeNivel2() {
+        val secciones = agruparEnSecciones(
+            parsearMarkdown("# Título\n\nIntroducción\n\n## Uno\n\nTexto uno\n\n## Dos\n\n- Punto")
+        )
+
+        assertEquals(3, secciones.size)
+        assertEquals(2, secciones[0].size)
+        assertEquals(BloqueMarkdown.Titulo(2, "Uno"), secciones[1].first())
+        assertEquals(BloqueMarkdown.Titulo(2, "Dos"), secciones[2].first())
     }
 
     @Test

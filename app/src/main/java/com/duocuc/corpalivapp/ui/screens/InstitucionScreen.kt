@@ -1,6 +1,5 @@
 package com.duocuc.corpalivapp.ui.screens
 
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,7 +26,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.duocuc.corpalivapp.ui.components.MarkdownText
+import com.duocuc.corpalivapp.ui.components.MarkdownEnBloques
+import com.duocuc.corpalivapp.ui.theme.coloresChipAzul
 import com.duocuc.corpalivapp.ui.viewmodel.InstitucionUiState
 import com.duocuc.corpalivapp.ui.viewmodel.InstitucionViewModel
 import com.duocuc.corpalivapp.ui.viewmodel.SeccionInstitucion
@@ -36,6 +36,7 @@ import com.duocuc.corpalivapp.ui.viewmodel.SeccionInstitucion
  * G10: INFORMACIÓN INSTITUCIONAL
  * Muestra a quién está dirigida la plataforma. Incluye la barra inferior
  * Ahora la barra inferior la muestra AppNavigation y el texto de cada sección se lee de un .md en assets/institucion.
+ * Las dos secciones (Escuela Jan Van Dijk y Alba Lab) van una a cada costado y se muestran en bloques.
  */
 @Composable
 fun InstitucionScreen(
@@ -72,18 +73,26 @@ private fun InstitucionContenido(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Selector de sección: Corpaliv, Escuela Jan Van Dijk o Alba Lab
+            // Selector de sección: una a cada costado; la elegida se resalta en azul
             Row(
                 modifier = Modifier
-                    .horizontalScroll(rememberScrollState())
+                    .fillMaxWidth()
                     .padding(vertical = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 SeccionInstitucion.entries.forEach { seccion ->
+                    val elegida = seccion == estado.seccion
+
                     FilterChip(
-                        selected = seccion == estado.seccion,
+                        selected = elegida,
                         onClick = { onSeleccion(seccion) },
-                        label = { Text(seccion.etiqueta) }
+                        label = {
+                            Text(
+                                text = seccion.etiqueta,
+                                fontWeight = if (elegida) FontWeight.Bold else FontWeight.Normal
+                            )
+                        },
+                        colors = coloresChipAzul()
                     )
                 }
             }
@@ -103,7 +112,7 @@ private fun InstitucionContenido(
 
                     // key: al cambiar de sección el texto vuelve al inicio
                     else -> key(estado.seccion) {
-                        MarkdownText(
+                        MarkdownEnBloques(
                             markdown = estado.contenido,
                             modifier = Modifier
                                 .verticalScroll(rememberScrollState())

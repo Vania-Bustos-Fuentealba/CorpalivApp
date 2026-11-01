@@ -34,7 +34,7 @@ com.duocuc.corpalivapp/
 │   ├── local/          # Guía 12: EstadoDataStore (DataStore Preferences)
 │   ├── model/          # OportunidadModel, Persona, Empleado... + Guía 11: UsuarioUiState, UsuarioErrores
 │   └── network/        # Interfaces Retrofit y Cliente de API (ApiService, RetrofitClient)
-├── assets/institucion/ # Textos de "Quiénes somos" en Markdown (Corpaliv, Escuela Jan Van Dijk, Alba Lab)
+├── assets/institucion/ # Textos en Markdown: Corpaliv (Inicio), Escuela Jan Van Dijk y Alba Lab (Quiénes somos)
 ├── navigation/         # Guías 10 y 11
 │   ├── Screen.kt           # Sealed class con las rutas tipo-safe
 │   ├── NavigationEvent.kt  # Eventos: NavigateTo, PopBackStack, NavigateUp
@@ -59,9 +59,11 @@ Flujo de navegación (MVVM): `Pantalla → MainViewModel (emite NavigationEvent)
 
 | Ruta | Pantalla | Componentes de navegación |
 |------|----------|---------------------------|
-| `home_page` | Inicio adaptativo (Guía 8 y 9) | `TopAppBar` + `ModalNavigationDrawer` (Compact/Medium) o `PermanentNavigationDrawer` (Expanded) |
+| `home_page` | Inicio adaptativo (Guía 8 y 9) con la información de Corpaliv en bloques | `TopAppBar` + `ModalNavigationDrawer` (Compact/Medium) o `PermanentNavigationDrawer` (Expanded) |
 | `oportunidades_page` | Oportunidades y proyectos RSE | `TopAppBar` con flecha de retorno |
-| `institucion_page` | Quiénes somos (Corpaliv, Escuela Jan Van Dijk y Alba Lab, leídos desde `.md`) | Selector de sección |
+| `institucion_page` | Quiénes somos: Escuela Jan Van Dijk y Alba Lab, leídos desde `.md` y mostrados en bloques | Selector de sección (una a cada costado, en azul) |
+| `perfil_page` | Mi perfil: pide iniciar sesión y, con la cuenta de administrador, muestra la información general, el badge con el rol, la foto (cámara o galería), la opción Dashboard y cerrar sesión | Menú lateral, sección "Herramientas" |
+| `dashboard_page` | Dashboard para administradores: aportes de personas y empresas con su botón "Contactar Whatsapp" | Botón "Dashboard" del perfil (requiere sesión de administrador) |
 
 La `NavigationBar` inferior se declara una sola vez en `AppNavigation` y se muestra en **todas** las pantallas.
 
@@ -72,7 +74,11 @@ La `NavigationBar` inferior se declara una sola vez en `AppNavigation` y se mues
 - `UsuarioUiState` y `UsuarioErrores` modelan el estado del formulario (`data/model`).
 - `UsuarioViewModel` guarda el estado en un `MutableStateFlow` y valida con `validarFormulario()`; los errores se corrigen en tiempo real mientras se escribe.
 - `RegistroScreen` (`OutlinedTextField`, desplegable de motivo, `Button`, `isError` + `supportingText`) y `ResumenScreen` comparten el **mismo** `UsuarioViewModel`, sin pasar argumentos por la ruta.
-- Flujo: `oportunidades_page` → clic en una oportunidad → `registro_page` (nombre, apellido, RUT, correo, dirección y motivo: aportar o postular) → barra de carga → `resumen_page` (agradecimiento y aviso de contacto en un día hábil por WhatsApp o teléfono).
+- Flujo: `oportunidades_page` → clic en una oportunidad → `registro_page` → barra de carga → `resumen_page` (agradecimiento y aviso de contacto en un día hábil por WhatsApp o teléfono).
+- `registro_page` tiene un selector **Persona / Empresa** que cambia los campos sin borrar lo ya escrito. Persona: nombre, apellido, RUN, correo, teléfono (+569) y motivo (aportar o ingresar a programa); si el motivo es "Aportar" se pide además la frecuencia de la donación (única, mensual o anual). Empresa: razón social, dirección comercial, RUT, giro, representante legal y su RUT, correo corporativo y teléfono.
+- Al confirmar un aporte (persona que aporta o empresa) se muestra una pantalla de carga y luego, por 5 segundos, el mensaje de agradecimiento antes de volver al inicio. Esos aportes se guardan en el dispositivo (DataStore) y aparecen en el Dashboard.
+- La cuenta de administrador es **solo de demostración** (`SesionViewModel.kt`): las credenciales están en el código y la sesión vive en memoria. En una app real la autenticación debe hacerse en un servidor.
+- El RUN y el RUT se validan por formato (`XXXXXXXX-X`); el dígito verificador queda desactivado por ahora (`VERIFICAR_DIGITO_VERIFICADOR` en `RutUtils.kt`).
 - Pruebas unitarias en `UsuarioViewModelTest`, `RutUtilsTest` y `MarkdownParserTest`.
 
 ## ✨ Guía 12 - Animaciones y estados
