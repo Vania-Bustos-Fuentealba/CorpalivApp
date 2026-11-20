@@ -11,6 +11,7 @@
         android:name="android.hardware.camera"
         android:required="false" />
 
+    <!-- Parcial 4: en desarrollo se permite http hacia los microservicios locales (10.0.2.2). Se quita al publicar. -->
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -19,6 +20,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:usesCleartextTraffic="true"
         android:theme="@style/Theme.CorpalivApp">
         <activity
             android:name=".MainActivity"

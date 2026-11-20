@@ -52,6 +52,8 @@ dependencies {
     // Retrofit & Gson
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    // Parcial 4: cliente HTTP con interceptor para enviar el token JWT y definir tiempos de espera
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
     // Coil para imágenes
     implementation("io.coil-kt:coil-compose:2.6.0")

@@ -1,12 +1,16 @@
 package com.duocuc.corpalivapp.ui.viewmodel // Declaración del paquete al que pertenece este archivo dentro de la capa de lógica de presentación (ViewModel)
 
 import androidx.lifecycle.ViewModel // Importación de la clase base ViewModel de Android Jetpack
+import androidx.lifecycle.viewModelScope // Alcance de corrutinas acotado al ciclo de vida del ViewModel (Parcial 4: login contra el servidor)
 import com.duocuc.corpalivapp.data.model.RolUsuario // Enum con los roles de usuario (ADMINISTRADOR, VISITANTE, etc.)
 import com.duocuc.corpalivapp.data.model.UsuarioSesion // Modelo de datos para almacenar la información de la sesión activa
+import com.duocuc.corpalivapp.data.network.SesionToken // Token JWT de la sesión, que el cliente HTTP agrega a las peticiones
+import com.duocuc.corpalivapp.data.repository.AuthRepository // Repositorio que ejecuta el login contra auth-service
 import kotlinx.coroutines.flow.MutableStateFlow // Flujo de estado mutable observable
 import kotlinx.coroutines.flow.StateFlow // Flujo de estado de solo lectura expuesto a la interfaz de usuario
 import kotlinx.coroutines.flow.asStateFlow // Transforma un MutableStateFlow en un StateFlow inmutable
 import kotlinx.coroutines.flow.update // Función de extensión para actualizar de forma atómica el estado en un MutableStateFlow
+import kotlinx.coroutines.launch // Extensión de corrutina para iniciar el login asíncrono sin bloquear la pantalla
 
 // SOLO DEMOSTRACIÓN: la cuenta de administrador está escrita en el código para poder probar el flujo.
 // En una app real la autenticación se hace en un servidor y las credenciales nunca van en el repositorio.
@@ -18,7 +22,8 @@ internal const val ADMIN_NOMBRE = "Administrador CORPALIV" // Constante interna 
 data class LoginUiState( // Clase de datos que encapsula el estado visual del formulario de login
     val correo: String = "", // Campo con el correo electrónico ingresado
     val clave: String = "", // Campo con la contraseña ingresada
-    val error: String? = null // Mensaje de error de validación o autenticación (null si no hay error)
+    val error: String? = null, // Mensaje de error de validación o autenticación (null si no hay error)
+    val cargando: Boolean = false // Parcial 4: true mientras se espera la respuesta del servidor (deshabilita el botón)
 )
 
 /**
@@ -29,7 +34,7 @@ data class LoginUiState( // Clase de datos que encapsula el estado visual del fo
 - al cerrar la app hay que volver a ingresar. Se crea a nivel de la Activity para compartirla entre pantallas.
 
  */
-class SesionViewModel : ViewModel() { // ViewModel para administrar el estado global de la sesión del usuario y el login
+class SesionViewModel(private val authRepository: AuthRepository = AuthRepository()) : ViewModel() { // ViewModel para administrar el estado global de la sesión del usuario y el login
 
     // null = no hay sesión iniciada
     private val _usuario = MutableStateFlow<UsuarioSesion?>(null) // Estado mutable interno con la información del usuario en sesión o null
@@ -78,9 +83,45 @@ class SesionViewModel : ViewModel() { // ViewModel para administrar el estado gl
         }
     }
 
+    /**
+     * PARCIAL 4: inicia sesión contra auth-service. Si el servidor acepta las credenciales abre la sesión
+     * con los datos y el token recibidos; si no, muestra el mensaje de error en el formulario.
+     */
+    fun iniciarSesionRemoto(ahora: Long = System.currentTimeMillis()) { // Login real: la validación de la cuenta la hace el backend
+        val datos = _login.value // Obtiene los datos actuales del formulario
+        val correo = datos.correo.trim() // Remueve espacios innecesarios al inicio y final del correo
+
+        if (datos.cargando) return // Si ya hay un intento en curso no se envía otro
+        if (correo.isEmpty() || datos.clave.isEmpty()) { // Evalúa si alguno de los campos obligatorios está vacío
+            _login.update { it.copy(error = "Ingresa tu correo y tu contraseña") } // Establece el mensaje de error correspondiente
+            return // No se consulta al servidor con datos incompletos
+        }
+
+        _login.update { it.copy(cargando = true, error = null) } // Marca el intento en curso y limpia el error anterior
+        viewModelScope.launch { // Corrutina: la petición de red no bloquea el hilo de la interfaz
+            authRepository.login(correo, datos.clave) // Consulta a auth-service
+                .onSuccess { sesion -> // El servidor aceptó las credenciales
+                    SesionToken.valor = sesion.token // Guarda el token para las siguientes peticiones
+                    _usuario.value = UsuarioSesion( // Instala la sesión activa con los datos que entregó el servidor
+                        nombre = sesion.nombre,
+                        correo = sesion.correo,
+                        rol = runCatching { RolUsuario.valueOf(sesion.rol) }.getOrDefault(RolUsuario.ADMINISTRADOR), // Rol del servidor (por defecto Administrador)
+                        inicio = if (sesion.inicio > 0L) sesion.inicio else ahora // Fecha de inicio entregada por el servidor
+                    )
+                    _login.value = LoginUiState() // Limpia el formulario (la contraseña no se conserva)
+                }
+                .onFailure { error -> // El servidor rechazó las credenciales o no hubo conexión
+                    _login.update { // Deja el formulario con el mensaje de error y sin la contraseña
+                        it.copy(clave = "", cargando = false, error = error.message ?: "No se pudo iniciar sesión")
+                    }
+                }
+        }
+    }
+
     /** Cierra la sesión y deja el formulario de acceso vacío. */
     fun cerrarSesion() { // Destruye la sesión activa
         _usuario.value = null // Restablece la sesión a null
+        SesionToken.valor = null // Parcial 4: descarta el token para que las peticiones salgan sin sesión
         _login.value = LoginUiState() // Reinicia los campos del formulario de login
     }
 }

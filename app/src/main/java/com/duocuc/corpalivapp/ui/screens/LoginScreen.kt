@@ -111,7 +111,7 @@ fun LoginScreen( // Componente composable de la pantalla de inicio de sesión vi
                     keyboardType = KeyboardType.Password, // Solicita el teclado optimizado para contraseñas
                     imeAction = ImeAction.Done // Asigna la acción de "Listo/Finalizado" a la tecla de confirmación
                 ),
-                keyboardActions = KeyboardActions(onDone = { viewModel.iniciarSesion() }), // Ejecuta el intento de inicio de sesión al pulsar Listo
+                keyboardActions = KeyboardActions(onDone = { viewModel.iniciarSesionRemoto() }), // Ejecuta el intento de inicio de sesión al pulsar Listo
                 modifier = Modifier.fillMaxWidth() // Expande el campo a todo el ancho
             )
 
@@ -128,10 +128,11 @@ fun LoginScreen( // Componente composable de la pantalla de inicio de sesión vi
             }
 
             Button( // Botón para autenticarse
-                onClick = { viewModel.iniciarSesion() }, // Invoca el método de inicio de sesión del ViewModel al hacer clic
+                onClick = { viewModel.iniciarSesionRemoto() }, // Invoca el método de inicio de sesión del ViewModel al hacer clic
+                enabled = !estado.cargando, // Parcial 4: se deshabilita mientras se espera la respuesta del servidor
                 modifier = Modifier.fillMaxWidth() // Expande el botón a todo el ancho horizontal
             ) {
-                Text("Ingresar") // Etiqueta de texto del botón
+                Text(if (estado.cargando) "Ingresando..." else "Ingresar") // Etiqueta de texto del botón
             }
         }
     }
