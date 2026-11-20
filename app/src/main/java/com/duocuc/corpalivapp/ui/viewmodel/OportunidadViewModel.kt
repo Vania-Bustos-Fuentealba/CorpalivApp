@@ -8,6 +8,7 @@ import com.duocuc.corpalivapp.data.model.PerfilUsuario // Importación de la cla
 import com.duocuc.corpalivapp.data.model.Persona // Importación de la clase modelo base Persona
 import com.duocuc.corpalivapp.data.model.ResultadoLogin // Importación de la sealed class ResultadoLogin
 import com.duocuc.corpalivapp.data.network.RetrofitClient // Cliente Retrofit para peticiones a servicios REST
+import com.duocuc.corpalivapp.data.repository.OportunidadesRepository // Repositorio para eliminar oportunidades (Parcial 4)
 import kotlinx.coroutines.delay // Función de suspensión para pausar ejecuciones de corrutinas
 import kotlinx.coroutines.flow.MutableStateFlow // Flujo de estado mutable observable
 import kotlinx.coroutines.flow.StateFlow // Flujo de estado de solo lectura expuesto a la vista
@@ -26,11 +27,14 @@ sealed interface OportunidadUiState { // Interfaz sellada que define la jerarqu�
     data class Error(val mensaje: String) : OportunidadUiState // Estado de error con un mensaje descriptivo de la falla
 }
 
-class OportunidadViewModel : ViewModel() { // ViewModel que gestiona la carga de oportunidades, demostraciones de POO y autenticación
+class OportunidadViewModel(private val repositorio: OportunidadesRepository = OportunidadesRepository()) : ViewModel() { // ViewModel que gestiona la carga de oportunidades, demostraciones de POO y autenticación
 
     // Gestión de estado reactivo mediante StateFlow
     private val _uiState = MutableStateFlow<OportunidadUiState>(OportunidadUiState.Loading) // Estado mutable interno iniciado en Loading
     val uiState: StateFlow<OportunidadUiState> = _uiState.asStateFlow() // Flujo de estado público e inmutable para la UI
+
+    private val _aviso = MutableStateFlow<String?>(null) // Parcial 4: mensaje breve para mostrar en pantalla (null si no hay)
+    val aviso: StateFlow<String?> = _aviso.asStateFlow() // Flujo de solo lectura con el aviso para la UI
 
     init {
         // G4 - CREACIÓN DE OBJETOS Y DEMOSTRACIÓN DE POO:
@@ -215,5 +219,22 @@ class OportunidadViewModel : ViewModel() { // ViewModel que gestiona la carga de
                 _uiState.value = OportunidadUiState.Success(datosRespaldo) // Emite las oportunidades de respaldo para evitar fallas visuales
             }
         }
+    }
+
+    /** PARCIAL 4: elimina una oportunidad del servidor (solo administradores) y vuelve a cargar el listado. */
+    fun eliminar(id: Int) { // Se llama tras confirmar la eliminación en el diálogo
+        viewModelScope.launch { // Corrutina para no bloquear la interfaz
+            repositorio.eliminar(id) // Consulta a oportunidades-service
+                .onSuccess { // El servidor eliminó la oportunidad
+                    _aviso.value = "Oportunidad eliminada" // Confirma la acción al usuario
+                    cargarOportunidades() // Refresca el listado
+                }
+                .onFailure { error -> _aviso.value = error.message } // Informa el motivo de la falla
+        }
+    }
+
+    /** La pantalla ya mostró el aviso: se limpia para que no se repita. */
+    fun consumirAviso() { // Se llama después de mostrar el mensaje
+        _aviso.value = null
     }
 }

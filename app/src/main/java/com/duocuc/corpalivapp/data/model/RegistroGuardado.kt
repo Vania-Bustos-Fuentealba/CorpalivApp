@@ -27,5 +27,10 @@ data class RegistroGuardado( // Data class que representa un registro de aporte 
     val direccion: String = "", // Dirección física o domicilio tributario (usado principalmente por empresas)
     val giro: String = "", // Actividad o giro comercial (exclusivo para aportes empresariales)
     val representante: String = "", // Nombre completo del representante legal de la organización
-    val rutRepresentante: String = "" // RUT del representante legal de la empresa
+    val rutRepresentante: String = "", // RUT del representante legal de la empresa
+    // PARCIAL 4: datos que entrega aportes-service
+    val motivo: String = "APORTE", // "APORTE" o "POSTULACION" (las postulaciones son solo de personas)
+    val estado: String = "PENDIENTE", // "PENDIENTE" o "CONTACTADO" según el seguimiento del administrador
+    val fecha: Long = 0L, // Fecha y hora del registro en milisegundos, asignada por el servidor
+    val oportunidadId: Long? = null // Identificador de la oportunidad en el servidor (puede venir vacío)
 )

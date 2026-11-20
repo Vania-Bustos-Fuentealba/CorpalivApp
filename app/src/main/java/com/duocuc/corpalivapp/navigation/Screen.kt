@@ -16,6 +16,9 @@ sealed class Screen(val route: String) { // Declaración de la clase sellada bas
     /** Listado de oportunidades y proyectos RSE (con TopAppBar y NavigationBar). */
     data object Oportunidades : Screen("oportunidades_page") // Ruta para el listado de oportunidades ("oportunidades_page")
 
+    /** PARCIAL 4: formulario para crear o modificar una oportunidad (solo administradores). */
+    data object OportunidadForm : Screen("oportunidad_form_page") // Ruta para el formulario de oportunidades ("oportunidad_form_page")
+
     /** Información institucional de CORPALIV (con NavigationBar). */
     data object Institucion : Screen("institucion_page") // Ruta para la pantalla con información institucional ("institucion_page")
 

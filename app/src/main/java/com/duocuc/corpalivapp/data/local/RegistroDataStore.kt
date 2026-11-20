@@ -33,6 +33,13 @@ class RegistroDataStore(private val context: Context) { // Definición de la cla
         } // Finaliza y aplica la transacción en disco
     }
 
+    /** PARCIAL 4: reemplaza toda la lista por la que entregó el servidor (queda como copia local). */
+    suspend fun reemplazarTodos(registros: List<RegistroGuardado>) { // Función de suspensión que sustituye la lista completa guardada
+        context.registrosStore.edit { preferencias -> // Inicia una transacción de modificación en el DataStore de registros
+            preferencias[clave] = gson.toJson(registros) // Serializa la lista del servidor y la guarda en lugar de la anterior
+        } // Finaliza y aplica la transacción en disco
+    }
+
     /** Lista de aportes como Flow reactivo: el Dashboard se actualiza solo. */
     fun obtenerTodos(): Flow<List<RegistroGuardado>> { // Retorna un flujo continuo que emite la lista actualizada de aportes cada vez que cambia
         return context.registrosStore.data.map { preferencias -> leer(preferencias[clave]) } // Lee la cadena de la clave "aportes" y la convierte en List<RegistroGuardado>

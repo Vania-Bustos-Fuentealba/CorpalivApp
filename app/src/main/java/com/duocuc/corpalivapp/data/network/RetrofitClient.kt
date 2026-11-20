@@ -15,6 +15,7 @@ object RetrofitClient { // Declaración de un objeto Singleton para garantizar u
     private const val BASE_URL = "http://10.0.2.2:8081/api/" // Constante privada con la dirección web base para todas las llamadas a la API
 
     private const val BASE_URL_AUTH = "$HOST:8083/api/" // Base del microservicio de autenticación (auth-service)
+    private const val BASE_URL_APORTES = "$HOST:8082/api/" // Base del microservicio de aportes y postulaciones (aportes-service)
 
     // Cliente HTTP común: agrega el token JWT de la sesión (si existe) y corta las esperas largas
     private val clienteHttp: OkHttpClient by lazy { // Se crea una sola vez, en el primer uso
@@ -49,5 +50,14 @@ object RetrofitClient { // Declaración de un objeto Singleton para garantizar u
             .addConverterFactory(GsonConverterFactory.create()) // Convierte el JSON de las respuestas a objetos Kotlin
             .build() // Construye la instancia de Retrofit
             .create(AuthApiService::class.java) // Implementa la interfaz AuthApiService
+    }
+
+    val aportesApi: AportesApiService by lazy { // Servicio de aportes y postulaciones creado de forma diferida
+        Retrofit.Builder() // Inicia el patrón Builder para el microservicio de aportes
+            .baseUrl(BASE_URL_APORTES) // Dirección base de aportes-service
+            .client(clienteHttp) // Mismo cliente HTTP con tiempos de espera y token
+            .addConverterFactory(GsonConverterFactory.create()) // Convierte el JSON de las respuestas a objetos Kotlin
+            .build() // Construye la instancia de Retrofit
+            .create(AportesApiService::class.java) // Implementa la interfaz AportesApiService
     }
 }

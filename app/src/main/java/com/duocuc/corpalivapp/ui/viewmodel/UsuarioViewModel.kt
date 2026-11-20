@@ -2,6 +2,7 @@ package com.duocuc.corpalivapp.ui.viewmodel // Declaración del paquete al que p
 
 import androidx.lifecycle.ViewModel // Importación de la clase base ViewModel de Android Jetpack
 import androidx.lifecycle.viewModelScope // Alcance de corrutinas acotado al ciclo de vida del ViewModel
+import com.duocuc.corpalivapp.data.model.AporteRequestDto // Cuerpo que se envía a aportes-service (Parcial 4)
 import com.duocuc.corpalivapp.data.model.DatosEmpresa // Importación del modelo con los datos de formulario de tipo Empresa
 import com.duocuc.corpalivapp.data.model.DatosPersona // Importación del modelo con los datos de formulario de tipo Persona
 import com.duocuc.corpalivapp.data.model.ErroresEmpresa // Importación de la estructura de errores de validación para Empresa
@@ -10,9 +11,11 @@ import com.duocuc.corpalivapp.data.model.MOTIVO_APORTAR // Constante que identif
 import com.duocuc.corpalivapp.data.model.RegistroGuardado // Modelo de datos para la persistencia del registro en DataStore
 import com.duocuc.corpalivapp.data.model.TipoRegistro // Enum con los tipos de registro (PERSONA o EMPRESA)
 import com.duocuc.corpalivapp.data.model.UsuarioUiState // Clase de datos con el estado global unificado de la UI del usuario
+import com.duocuc.corpalivapp.data.repository.AportesRepository // Repositorio que envía el registro a aportes-service (Parcial 4)
 import com.duocuc.corpalivapp.util.esRutValido // Función utilitaria para validar el algoritmo del dígito verificador del RUT/RUN
 import com.duocuc.corpalivapp.util.formatearRut // Función utilitaria para dar formato visual al RUT/RUN (puntos y guión)
 import kotlinx.coroutines.Job // Clase que representa una corrutina cancelable o manejable
+import kotlinx.coroutines.async // Inicia el envío al servidor en paralelo a la barra de carga (Parcial 4)
 import kotlinx.coroutines.delay // Función de suspensión para simular tiempos de espera
 import kotlinx.coroutines.flow.MutableStateFlow // Flujo de estado mutable observable
 import kotlinx.coroutines.flow.StateFlow // Flujo de estado de solo lectura expuesto a la vista
@@ -28,7 +31,7 @@ import kotlinx.coroutines.launch // Extensión de corrutina para iniciar operaci
 - Maneja dos tipos de formulario (persona o empresa) en un mismo estado.
 
  */
-class UsuarioViewModel : ViewModel() { // ViewModel que gestiona la captura, validación y envío simulado del formulario de registro
+class UsuarioViewModel(private val aportesRepository: AportesRepository = AportesRepository()) : ViewModel() { // ViewModel que gestiona la captura, validación y envío simulado del formulario de registro
 
     // Estado interno mutable y estado expuesto de solo lectura para la UI
     private val _estado = MutableStateFlow(UsuarioUiState()) // Estado mutable privado con los datos y errores del formulario
@@ -171,19 +174,69 @@ class UsuarioViewModel : ViewModel() { // ViewModel que gestiona la captura, val
         }
     }
 
+    /**
+     * PARCIAL 4: arma el cuerpo que se envía a aportes-service. Sirve para el aporte de una persona,
+     * la postulación de una persona a un programa y el aporte de una empresa.
+     */
+    fun construirSolicitud(): AporteRequestDto { // Convierte el estado del formulario en la petición para el servidor
+        val actual = _estado.value // Lee el estado actual
+        val oportunidad = actual.oportunidad.ifBlank { "General" } // El servidor exige una oportunidad: si no hay ninguna elegida se usa "General"
+
+        return when (actual.tipo) {
+            TipoRegistro.PERSONA -> { // Persona: aporte o postulación según el motivo elegido
+                val p = actual.persona
+                val aporta = p.motivo == MOTIVO_APORTAR // Solo quien aporta indica la frecuencia
+                AporteRequestDto(
+                    tipo = TipoRegistro.PERSONA.name,
+                    motivo = if (aporta) "APORTE" else "POSTULACION",
+                    oportunidad = oportunidad,
+                    nombre = "${p.nombre.trim()} ${p.apellido.trim()}",
+                    rut = p.run,
+                    correo = p.correo.trim(),
+                    telefono = "+569 ${p.telefono}",
+                    tipoAporte = if (aporta) p.frecuenciaDonacion else null
+                )
+            }
+
+            TipoRegistro.EMPRESA -> { // Empresa: siempre es un aporte
+                val e = actual.empresa
+                AporteRequestDto(
+                    tipo = TipoRegistro.EMPRESA.name,
+                    motivo = "APORTE",
+                    oportunidad = oportunidad,
+                    nombre = e.razonSocial.trim(),
+                    rut = e.rut,
+                    correo = e.correo.trim(),
+                    telefono = "+56 ${e.telefono}",
+                    direccion = e.direccion.trim(),
+                    giro = e.giro.trim(),
+                    representante = e.representante.trim(),
+                    rutRepresentante = e.rutRepresentante
+                )
+            }
+        }
+    }
+
     /** G12: simula el envío avanzando la barra de carga y avisa a la pantalla cuando termina. */
     fun enviarRegistro() { // Ejecuta el proceso de envío asíncrono con progreso incremental
         if (_estado.value.enviando) return // Evita ejecuciones duplicadas si ya se está enviando
 
         envioJob = viewModelScope.launch { // Inicia corrutina de envío
-            _estado.update { it.copy(enviando = true, progreso = 0f) } // Establece el flag enviando en true e inicia el progreso en 0
+            _estado.update { it.copy(enviando = true, progreso = 0f, errorEnvio = null) } // Establece el flag enviando en true e inicia el progreso en 0
+            val respuesta = async { aportesRepository.registrar(construirSolicitud()) } // Parcial 4: el envío real al servidor corre mientras avanza la barra
 
             for (paso in 1..PASOS_ENVIO) { // Itera progresivamente simulando la transferencia de datos
                 delay(PAUSA_PASO_MS) // Retardo entre cada paso
                 _estado.update { it.copy(progreso = paso / PASOS_ENVIO.toFloat()) } // Actualiza el porcentaje de progreso (0.0 a 1.0)
             }
 
-            _estado.update { it.copy(enviando = false, completado = true) } // Finaliza la simulación marcando enviando en false y completado en true
+            respuesta.await() // Parcial 4: espera la respuesta real del servidor antes de continuar
+                .onSuccess { // El servidor guardó el registro
+                    _estado.update { it.copy(enviando = false, completado = true) } // Finaliza la simulación marcando enviando en false y completado en true
+                }
+                .onFailure { error -> // El servidor rechazó el registro o no hubo conexión: se queda en el formulario
+                    _estado.update { it.copy(enviando = false, errorEnvio = error.message ?: "No se pudo enviar el registro") }
+                }
         }
     }
 

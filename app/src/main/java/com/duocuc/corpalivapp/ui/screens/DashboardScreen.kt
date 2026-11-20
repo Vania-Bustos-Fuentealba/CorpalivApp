@@ -1,5 +1,7 @@
 package com.duocuc.corpalivapp.ui.screens // Declaración del paquete al que pertenece esta pantalla dentro de la capa de interfaz de usuario (UI)
 
+import androidx.compose.foundation.horizontalScroll // Permite desplazar horizontalmente la fila de filtros cuando no caben (Parcial 4)
+import androidx.compose.foundation.rememberScrollState // Estado de desplazamiento que usa la fila de filtros (Parcial 4)
 import androidx.compose.foundation.layout.Arrangement // Importación para especificar la distribución de los elementos en la pantalla
 import androidx.compose.foundation.layout.Box // Importación del contenedor Box para apilar o alinear elementos al centro
 import androidx.compose.foundation.layout.PaddingValues // Importación para definir valores de márgenes internos o paddings de listas
@@ -13,20 +15,26 @@ import androidx.compose.foundation.layout.width // Modificador para fijar un anc
 import androidx.compose.foundation.lazy.LazyColumn // Importación de LazyColumn para renderizar listas verticales optimizadas
 import androidx.compose.foundation.lazy.items // Importación de la función de extensión items para iterar sobre colecciones en LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape // Importación de la forma con esquinas redondeadas para contenedores y superficies
+import androidx.compose.material3.AlertDialog // Diálogo de confirmación antes de eliminar un registro (Parcial 4)
 import androidx.compose.material3.Button // Importación del botón de acción estándar de Material 3
 import androidx.compose.material3.CircularProgressIndicator // Importación del indicador de carga circular
 import androidx.compose.material3.ExperimentalMaterial3Api // Importación de la anotación para habilitar APIs experimentales de Material 3
 import androidx.compose.material3.FilterChip // Componente FilterChip de Material 3 para representar filtros seleccionables
 import androidx.compose.material3.MaterialTheme // Acceso al esquema de colores y tipografía del tema de Material Design
+import androidx.compose.material3.OutlinedButton // Botón con borde para la acción secundaria de eliminar (Parcial 4)
 import androidx.compose.material3.OutlinedCard // Componente de tarjeta con borde dibujado para enmarcar contenido
 import androidx.compose.material3.Scaffold // Estructura visual básica de pantalla que soporta topBar y snackbarHost
 import androidx.compose.material3.SnackbarHost // Contenedor visual para mostrar mensajes emergentes (Snackbars)
 import androidx.compose.material3.SnackbarHostState // Estado que gestiona la cola y visualización de los Snackbars
 import androidx.compose.material3.Surface // Superficie plana que aplica color de fondo y forma a sus elementos hijos
+import androidx.compose.material3.TextButton // Botón de texto de los diálogos de confirmación (Parcial 4)
 import androidx.compose.material3.Text // Componente Text de Material 3 para renderizar cadenas de texto
 import androidx.compose.runtime.Composable // Anotación que indica que la función construye la UI con Jetpack Compose
+import androidx.compose.runtime.LaunchedEffect // Ejecuta una acción al entrar a la pantalla (Parcial 4: descarga los registros del servidor)
 import androidx.compose.runtime.getValue // Delegado para obtener el valor de un estado mediante la palabra clave 'by'
+import androidx.compose.runtime.mutableStateOf // Crea el estado del diálogo de confirmación (Parcial 4)
 import androidx.compose.runtime.remember // Función para memorizar objetos a través de las recomposiciones
+import androidx.compose.runtime.setValue // Delegado de propiedad para modificar estados en Compose (Parcial 4)
 import androidx.compose.runtime.rememberCoroutineScope // Crea y recuerda un alcance de corrutinas vinculado a la composición
 import androidx.compose.ui.Alignment // Importación para definir la alineación de elementos en contenedores
 import androidx.compose.ui.Modifier // Modificador de UI base de Jetpack Compose
@@ -66,6 +74,25 @@ fun DashboardScreen( // Pantalla principal del panel de administración/Dashboar
     val snackbarHostState = remember { SnackbarHostState() } // Instancia memorizada para la gestión de mensajería emergente
     val scope = rememberCoroutineScope() // CoroutineScope asociado al ciclo de vida del composable
 
+    var aEliminar by remember { mutableStateOf<RegistroGuardado?>(null) } // Parcial 4: registro pendiente de confirmar su eliminación
+
+    aEliminar?.let { objetivo -> // Parcial 4: diálogo de confirmación antes de eliminar
+        AlertDialog(
+            onDismissRequest = { aEliminar = null }, // Cierra el diálogo sin eliminar
+            title = { Text("Eliminar registro") },
+            text = { Text("¿Eliminar el registro de ${objetivo.nombre}? Esta acción no se puede deshacer.") },
+            confirmButton = {
+                TextButton(onClick = { // Confirma: elimina en el servidor y cierra el diálogo
+                    viewModel.eliminar(objetivo.id)
+                    aEliminar = null
+                }) { Text("Eliminar") }
+            },
+            dismissButton = { TextButton(onClick = { aEliminar = null }) { Text("Cancelar") } }
+        )
+    }
+
+    LaunchedEffect(Unit) { viewModel.sincronizar() } // Parcial 4: al abrir el Dashboard se descargan los registros de aportes-service
+
     Scaffold( // Estructura base de la pantalla
         topBar = { AppTopBar(titulo = "Dashboard", onBack = onBack) }, // Barra superior con título "Dashboard" y acción para volver
         snackbarHost = { SnackbarHost(snackbarHostState) } // Host configurado para mostrar notificaciones de Snackbar
@@ -92,15 +119,16 @@ fun DashboardScreen( // Pantalla principal del panel de administración/Dashboar
                     modifier = Modifier.fillMaxWidth(), // Ocupa todo el ancho
                     horizontalArrangement = Arrangement.spacedBy(8.dp) // Espaciado de 8dp entre cada tarjeta
                 ) {
-                    TarjetaTotal("Total", estado.totalPersonas + estado.totalEmpresas, Modifier.weight(1f)) // Tarjeta para la suma global
+                    TarjetaTotal("Total", estado.totalPersonas + estado.totalEmpresas + estado.totalPostulaciones, Modifier.weight(1f)) // Tarjeta para la suma global
                     TarjetaTotal("Personas", estado.totalPersonas, Modifier.weight(1f)) // Tarjeta para el conteo de personas
                     TarjetaTotal("Empresas", estado.totalEmpresas, Modifier.weight(1f)) // Tarjeta para el conteo de empresas
+                    TarjetaTotal("Postulaciones", estado.totalPostulaciones, Modifier.weight(1f)) // Parcial 4: tarjeta para el conteo de postulaciones
                 }
             }
 
             // Filtros: el elegido se resalta en azul
             item { // Elemento estático: Fila de chips para filtrar la lista
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { // Contenedor horizontal con separación de 8dp
+                Row(modifier = Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) { // Contenedor horizontal con separación de 8dp
                     FiltroDashboard.entries.forEach { filtro -> // Itera sobre las opciones del enum FiltroDashboard
                         val elegido = filtro == estado.filtro // Evalúa si la opción es la seleccionada actualmente
 
@@ -115,6 +143,22 @@ fun DashboardScreen( // Pantalla principal del panel de administración/Dashboar
                             },
                             colors = coloresChipAzul() // Aplica la paleta de colores azul personalizada
                         )
+                    }
+                }
+            }
+
+            // Parcial 4: si falló la conexión con el servidor se avisa y se ofrece reintentar
+            estado.error?.let { mensaje -> // Solo aparece cuando la última descarga o el último cambio de estado falló
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = mensaje, // Mensaje legible entregado por el repositorio
+                            color = MaterialTheme.colorScheme.error, // Color de error del tema
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Button(onClick = { viewModel.sincronizar() }) { // Vuelve a pedir los registros al servidor
+                            Text("Reintentar")
+                        }
                     }
                 }
             }
@@ -149,15 +193,18 @@ fun DashboardScreen( // Pantalla principal del panel de administración/Dashboar
                                 scope.launch { // Si falla la apertura, dispara una corrutina para mostrar la advertencia
                                     snackbarHostState.showSnackbar("No se pudo abrir WhatsApp") // Notifica que no se pudo iniciar la app de mensajería
                                 }
+                            } else { // Parcial 4: si se abrió WhatsApp, el registro queda marcado como contactado en el servidor
+                                viewModel.marcarContactado(registro.id)
                             }
-                        }
+                        },
+                        onEliminar = { aEliminar = registro } // Parcial 4: abre el diálogo de confirmación para eliminar el registro
                     )
                 }
             }
 
             item { // Elemento estático: Nota aclaratoria sobre la persistencia local de datos
                 Text(
-                    text = "Los aportes se guardan solo en este dispositivo.", // Mensaje informativo
+                    text = "Los aportes y postulaciones se obtienen del servidor de CORPALIV.", // Mensaje informativo
                     style = MaterialTheme.typography.bodySmall, // Estilo tipográfico pequeño
                     color = MaterialTheme.colorScheme.outline // Color atenuado (Outline)
                 )
@@ -194,11 +241,12 @@ private fun TarjetaTotal( // Componente privado para renderizar una tarjeta con 
 @Composable
 private fun TarjetaAporte( // Componente privado para renderizar los detalles completos de un aporte guardado
     registro: RegistroGuardado, // Instancia con los datos del registro
-    onContactar: () -> Unit // Callback al hacer clic en el botón de WhatsApp
+    onContactar: () -> Unit, // Callback al hacer clic en el botón de WhatsApp
+    onEliminar: () -> Unit // Parcial 4: callback al pulsar el botón para eliminar el registro
 ) {
     val esEmpresa = registro.tipo == TipoRegistro.EMPRESA.name // Evalúa si el registro corresponde a una empresa
     val fecha = remember(registro.id) { // Formatea y memoriza la fecha calculada desde el ID (timestamp)
-        SimpleDateFormat("dd/MM/yyyy HH:mm", Locale("es", "CL")).format(Date(registro.id)) // Convierte los milisegundos a formato dd/MM/yyyy HH:mm
+        SimpleDateFormat("dd/MM/yyyy HH:mm", Locale("es", "CL")).format(Date(if (registro.fecha > 0L) registro.fecha else registro.id)) // Convierte los milisegundos a formato dd/MM/yyyy HH:mm
     }
 
     OutlinedCard(modifier = Modifier.fillMaxWidth()) { // Tarjeta contenedora principal con borde
@@ -222,7 +270,7 @@ private fun TarjetaAporte( // Componente privado para renderizar los detalles co
                     color = MaterialTheme.colorScheme.secondaryContainer // Color de fondo para destacar la categoría
                 ) {
                     Text(
-                        text = if (esEmpresa) "Empresa" else "Persona", // Badge que diferencia el tipo de aportante
+                        text = if (esEmpresa) "Empresa" else if (registro.motivo == "POSTULACION") "Postulación" else "Persona", // Badge que diferencia el tipo de aportante
                         style = MaterialTheme.typography.labelMedium, // Estilo de etiqueta mediana
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp) // Padding interno del badge
                     )
@@ -243,6 +291,7 @@ private fun TarjetaAporte( // Componente privado para renderizar los detalles co
             Dato("Correo", registro.correo) // Correo de contacto
             Dato("Teléfono", registro.telefono) // Teléfono registrado
             Dato("Registrado", fecha) // Fecha y hora exacta de realización del registro
+            Dato("Estado", if (registro.estado == "CONTACTADO") "Contactado" else "Pendiente") // Parcial 4: seguimiento del administrador
 
             Button(
                 onClick = onContactar, // Invoca el callback de contacto al ser presionado
@@ -251,6 +300,13 @@ private fun TarjetaAporte( // Componente privado para renderizar los detalles co
                     .padding(top = 8.dp) // Margen de 8dp arriba
             ) {
                 Text("Contactar Whatsapp") // Texto descriptivo del botón
+            }
+
+            OutlinedButton( // Parcial 4: elimina el registro (pide confirmación antes)
+                onClick = onEliminar,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Eliminar registro")
             }
         }
     }

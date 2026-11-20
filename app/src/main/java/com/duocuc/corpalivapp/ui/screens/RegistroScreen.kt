@@ -202,6 +202,15 @@ fun RegistroScreen( // Componente principal de la pantalla de registro de aporte
                     Text("Registrar") // Etiqueta del botón
                 }
 
+                // Parcial 4: si el servidor rechazó el registro o no hubo conexión, se informa bajo el botón
+                estado.errorEnvio?.let { mensaje -> // Solo se muestra cuando el último envío falló
+                    Text(
+                        text = mensaje, // Mensaje legible entregado por el repositorio
+                        color = MaterialTheme.colorScheme.error, // Color de error del tema
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+
                 // G12: barra de carga del envío (progreso de 0 a 100 %)
                 if (estado.enviando) { // Muestra el indicador lineal de avance cuando no es aporte o durante el envío
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {

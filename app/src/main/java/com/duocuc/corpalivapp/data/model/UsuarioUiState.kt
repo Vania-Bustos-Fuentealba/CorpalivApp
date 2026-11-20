@@ -19,6 +19,7 @@ data class UsuarioUiState( // Data class que encapsula todo el estado de la UI d
     val enviando: Boolean = false, // Indica si la operación de envío está en ejecución (muestra indicador de carga)
     val progreso: Float = 0f, // Representa el porcentaje de progreso de 0.0f a 1.0f para la barra de avance
     val completado: Boolean = false, // Marca si el proceso de registro se completó exitosamente
+    val errorEnvio: String? = null, // Parcial 4: mensaje cuando el servidor rechazó el registro o no hubo conexión (null si no hay error)
 
     val errores: UsuarioErrores = UsuarioErrores() // Contenedor con todos los errores de validación de los campos
 ) {
