@@ -1,4 +1,6 @@
 
+import java.util.Properties // Lee pares clave=valor del archivo privado de firma.
+
 /*
  * ============================================================
  * PROYECTO: CORPALIV APP
@@ -49,6 +51,14 @@ plugins {
 // 2. CONFIGURACIÓN GENERAL DE ANDROID
 // ============================================================
 
+val coverageVersion = "0.8.14" // Unifica el motor de JaCoCo de Android y del informe; admite Java 25.
+val signingProperties = Properties().apply { // Prepara las propiedades sin incluir contraseñas en este archivo.
+    val propertiesFile = rootProject.file("keystore.properties") // Busca la configuración privada en la raíz.
+    if (propertiesFile.isFile) { // Permite ejecutar pruebas aunque todavía no exista una clave de entrega.
+        propertiesFile.inputStream().use { load(it) } // Lee las propiedades y cierra automáticamente el archivo.
+    }
+}
+
 android {
 
     // Espacio de nombres de la aplicación.
@@ -84,6 +94,19 @@ android {
     // 3. TIPOS DE COMPILACIÓN
     // ========================================================
 
+    signingConfigs { // Declara cómo se firmará el APK de entrega.
+        create("release") { // Crea una configuración independiente de la clave de depuración.
+            storeFile = signingProperties.getProperty("storeFile")?.let { rootProject.file(it) } // Resuelve la ruta privada del .jks.
+            storePassword = signingProperties.getProperty("storePassword") // Lee la contraseña del almacén, sin escribirla en Git.
+            keyAlias = signingProperties.getProperty("keyAlias") // Selecciona la entrada de clave que se usará dentro del almacén.
+            keyPassword = signingProperties.getProperty("keyPassword") // Lee la contraseña de esa entrada de clave.
+        }
+    }
+
+    testCoverage { // Configura el agente con el que Android registra la ejecución de las pruebas.
+        jacocoVersion = coverageVersion // Usa la misma versión que analizará los datos en el informe.
+    }
+
     buildTypes {
 
         // Configuración de desarrollo.
@@ -96,6 +119,7 @@ android {
 
         // Configuración para generar el APK de entrega.
         release {
+            signingConfig = signingConfigs.getByName("release") // Exige la firma privada al empaquetar esta variante.
 
             // Mantiene desactivada la reducción de código.
             isMinifyEnabled = false
@@ -358,7 +382,7 @@ dependencies {
 jacoco {
 
     // Versión del motor de cobertura.
-    toolVersion = "0.8.13"
+    toolVersion = coverageVersion
 }
 
 
@@ -413,7 +437,7 @@ tasks.register<JacocoReport>("jacocoTestReport") {
 
         fileTree(
             layout.buildDirectory.dir(
-                "tmp/kotlin-classes/debug"
+                "intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes" // Salida real de Kotlin integrado en AGP 9.
             )
         ) {
 
