@@ -20,6 +20,7 @@ import androidx.navigation.compose.rememberNavController // Función que crea y 
 import com.duocuc.corpalivapp.data.model.RolUsuario // Importación de la enumeración de roles de usuario
 import com.duocuc.corpalivapp.ui.components.AppBottomBar // Importación del componente de la barra de navegación inferior
 import com.duocuc.corpalivapp.ui.screens.DashboardScreen // Pantalla del panel de administración/dashboard
+import com.duocuc.corpalivapp.ui.screens.ExternalPostScreen // Pantalla que consulta y muestra publicaciones de JSONPlaceholder.
 import com.duocuc.corpalivapp.ui.screens.HomeScreenAdaptive // Pantalla principal de inicio con soporte adaptativo
 import com.duocuc.corpalivapp.ui.screens.InstitucionScreen // Pantalla informativa de la institución
 import com.duocuc.corpalivapp.ui.screens.LoginScreen // Pantalla de autenticación/inicio de sesión
@@ -136,6 +137,10 @@ fun AppNavigation( // Declaración del composable principal encargado de coordin
             }
             composable(route = Screen.Institucion.route) { // Define el nodo de la pantalla Institución
                 InstitucionScreen(onBack = volver) // Renderiza la pantalla pasando la acción de volver
+            }
+
+            composable(route = Screen.ApiExterna.route) { // Registra la ruta que solicita la opción API externa del menú lateral.
+                ExternalPostScreen() // Muestra las publicaciones y obtiene un ViewModel asociado a esta pantalla.
             }
 
             // GUÍA 11: formulario -> resumen (mismo UsuarioViewModel)
