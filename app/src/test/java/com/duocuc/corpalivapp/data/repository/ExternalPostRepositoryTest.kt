@@ -1,16 +1,16 @@
 
-package com.duocuc.corpalivapp.data.repository
+package com.duocuc.corpalivapp.data.repository // Ubica este archivo dentro del paquete que agrupa su responsabilidad en la aplicación.
 
-import com.duocuc.corpalivapp.data.network.ExternalApiService
-import com.duocuc.corpalivapp.data.network.ExternalPost
-import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.mockk
-import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertThrows
-import org.junit.Before
-import org.junit.Test
+import com.duocuc.corpalivapp.data.network.ExternalApiService // Importa ExternalApiService: declara los endpoints HTTP de las publicaciones.
+import com.duocuc.corpalivapp.data.model.ExternalPost // Importa ExternalPost: modela los campos de una publicación recibida desde JSONPlaceholder.
+import io.mockk.coEvery // Importa coEvery: configura respuestas simuladas para funciones suspendidas.
+import io.mockk.coVerify // Importa coVerify: comprueba cuántas veces se llamó a una función suspendida.
+import io.mockk.mockk // Importa mockk: crea un objeto simulado en lugar de utilizar la dependencia real.
+import kotlinx.coroutines.test.runTest // Importa runTest: ejecuta un test de corrutinas con planificación y tiempo controlados.
+import org.junit.Assert.assertEquals // Importa assertEquals: comprueba que el valor esperado coincida con el obtenido.
+import org.junit.Assert.assertThrows // Importa assertThrows: comprueba que el bloque lance el tipo de excepción esperado.
+import org.junit.Before // Importa Before: marca la preparación que se ejecuta antes de cada prueba.
+import org.junit.Test // Importa Test: marca un método como prueba ejecutable por JUnit.
 
 /**
  * ==================================================
@@ -24,7 +24,7 @@ import org.junit.Test
  * Se utiliza MockK para simular el servicio
  * sin realizar peticiones reales a Internet.
  */
-class ExternalPostRepositoryTest {
+class ExternalPostRepositoryTest { // Agrupa los escenarios que comprueban el comportamiento de esta clase.
 
     // Servicio de API simulado mediante MockK.
     private lateinit var apiService: ExternalApiService
@@ -38,7 +38,7 @@ class ExternalPostRepositoryTest {
      * Se ejecuta antes de cada prueba para crear
      * un servicio simulado y un Repository nuevo.
      */
-    @Before
+    @Before // Ejecuta la preparación antes de cada caso de prueba.
     fun configurar() {
 
         apiService = mockk()
@@ -54,8 +54,8 @@ class ExternalPostRepositoryTest {
      * Comprueba que el Repository devuelve
      * correctamente las publicaciones recibidas.
      */
-    @Test
-    fun obtenerPublicaciones_respuestaExitosa() = runTest {
+    @Test // Marca este escenario como una prueba que JUnit debe ejecutar.
+    fun obtenerPublicaciones_respuestaExitosa() = runTest { // Ejecuta este escenario con corrutinas y un reloj virtual controlados por el test.
 
         // Datos ficticios utilizados en la prueba.
         val publicaciones = listOf(
@@ -78,13 +78,13 @@ class ExternalPostRepositoryTest {
         // Comprueba que los datos sean correctos.
         assertEquals(1, resultado.size)
 
-        assertEquals(
+        assertEquals( // Compara el valor esperado con el obtenido en la respuesta o en la excepción.
             "Publicación de prueba",
             resultado[0].title
         )
 
         // Verifica que el servicio fue llamado una vez.
-        coVerify(exactly = 1) {
+        coVerify(exactly = 1) { // Comprueba que se realice una sola petición y no se duplique la operación.
             apiService.getPosts()
         }
     }
@@ -95,8 +95,8 @@ class ExternalPostRepositoryTest {
      * Comprueba que el Repository pueda recibir
      * una lista sin publicaciones.
      */
-    @Test
-    fun obtenerPublicaciones_listaVacia() = runTest {
+    @Test // Marca este escenario como una prueba que JUnit debe ejecutar.
+    fun obtenerPublicaciones_listaVacia() = runTest { // Ejecuta este escenario con corrutinas y un reloj virtual controlados por el test.
 
         // Simula una respuesta sin publicaciones.
         coEvery {
@@ -109,7 +109,7 @@ class ExternalPostRepositoryTest {
         // Comprueba que la lista esté vacía.
         assertEquals(0, resultado.size)
 
-        coVerify(exactly = 1) {
+        coVerify(exactly = 1) { // Comprueba que se realice una sola petición y no se duplique la operación.
             apiService.getPosts()
         }
     }
@@ -120,8 +120,8 @@ class ExternalPostRepositoryTest {
      * Comprueba que el Repository propague
      * correctamente los errores del servicio.
      */
-    @Test
-    fun obtenerPublicaciones_errorConexion() = runTest {
+    @Test // Marca este escenario como una prueba que JUnit debe ejecutar.
+    fun obtenerPublicaciones_errorConexion() = runTest { // Ejecuta este escenario con corrutinas y un reloj virtual controlados por el test.
 
         // Simula un fallo en la API externa.
         coEvery {
@@ -133,17 +133,17 @@ class ExternalPostRepositoryTest {
             RuntimeException::class.java
         ) {
             kotlinx.coroutines.runBlocking {
-                repository.obtenerPublicaciones()
+                repository.obtenerPublicaciones() // Espera la respuesta de la función suspendida del Repository.
             }
         }
 
         // Verifica el mensaje del error.
-        assertEquals(
+        assertEquals( // Compara el valor esperado con el obtenido en la respuesta o en la excepción.
             "Error de conexión",
             error.message
         )
 
-        coVerify(exactly = 1) {
+        coVerify(exactly = 1) { // Comprueba que se realice una sola petición y no se duplique la operación.
             apiService.getPosts()
         }
     }
