@@ -1,35 +1,11 @@
-package com.duocuc.corpalivapp.data.network
+package com.duocuc.corpalivapp.data.network // Ubica este archivo dentro del paquete que agrupa su responsabilidad en la aplicación.
 
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.GET
-
-// Modelo para recibir publicaciones de la API externa.
-data class ExternalPost(
-    val userId: Int,
-    val id: Int,
-    val title: String,
-    val body: String
-)
+import com.duocuc.corpalivapp.data.model.ExternalPost // Importa ExternalPost: modela los campos de una publicación recibida desde JSONPlaceholder.
+import retrofit2.http.GET // Importa GET: identifica una petición HTTP de lectura.
 
 // Endpoints disponibles.
-interface ExternalApiService {
+interface ExternalApiService { // Declara las operaciones que Retrofit implementará para la API externa.
 
-    @GET("posts")
-    suspend fun getPosts(): List<ExternalPost>
-}
-
-// Cliente independiente del backend de CorpalivApp.
-object ExternalApiClient {
-
-    private const val BASE_URL =
-        "https://jsonplaceholder.typicode.com/"
-
-    val api: ExternalApiService by lazy {
-        Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(ExternalApiService::class.java)
-    }
+    @GET("posts") // Solicita GET /posts sobre la dirección base del cliente.
+    suspend fun getPosts(): List<ExternalPost> // Devuelve las publicaciones sin bloquear el hilo mientras espera la red.
 }
