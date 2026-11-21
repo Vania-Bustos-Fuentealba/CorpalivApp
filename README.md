@@ -77,7 +77,7 @@ La `NavigationBar` inferior se declara una sola vez en `AppNavigation` y se mues
 - Flujo: `oportunidades_page` → clic en una oportunidad → `registro_page` → barra de carga → `resumen_page` (agradecimiento y aviso de contacto en un día hábil por WhatsApp o teléfono).
 - `registro_page` tiene un selector **Persona / Empresa** que cambia los campos sin borrar lo ya escrito. Persona: nombre, apellido, RUN, correo, teléfono (+569) y motivo (aportar o ingresar a programa); si el motivo es "Aportar" se pide además la frecuencia de la donación (única, mensual o anual). Empresa: razón social, dirección comercial, RUT, giro, representante legal y su RUT, correo corporativo y teléfono.
 - Al confirmar un aporte (persona que aporta o empresa) se muestra una pantalla de carga y luego, por 5 segundos, el mensaje de agradecimiento antes de volver al inicio. Esos aportes se guardan en el dispositivo (DataStore) y aparecen en el Dashboard.
-- La cuenta de administrador es **solo de demostración** (`SesionViewModel.kt`): las credenciales están en el código y la sesión vive en memoria. En una app real la autenticación debe hacerse en un servidor.
+- La pantalla de acceso usa `iniciarSesionRemoto()` contra `auth-service`; el token JWT y la sesión viven en memoria. El método local `iniciarSesion()` se conserva para las pruebas de la guía anterior y no es el acceso utilizado por la pantalla.
 - El RUN y el RUT se validan por formato (`XXXXXXXX-X`); el dígito verificador queda desactivado por ahora (`VERIFICAR_DIGITO_VERIFICADOR` en `RutUtils.kt`).
 - Pruebas unitarias en `UsuarioViewModelTest`, `RutUtilsTest` y `MarkdownParserTest`.
 
@@ -97,3 +97,73 @@ La `NavigationBar` inferior se declara una sola vez en `AppNavigation` y se mues
 ---
 
 Ramas y commits de evidencia: `feature/navegacion-menu`, `feature/registro-formulario`, `feature/estado-animaciones` y `feature/imagen-inteligente`.
+
+## Pruebas, cobertura y entrega
+
+El proyecto usa Gradle Wrapper 9.6.0, Android Gradle Plugin 9.3.0 y el JDK 25 definido
+en `gradle/gradle-daemon-jvm.properties`. Configura la ruta del SDK en `local.properties`
+o desde Android Studio. Las pruebas unitarias usan MockK y no requieren un backend ni emulador.
+
+Desde la raíz del proyecto, en PowerShell:
+
+```powershell
+.\gradlew.bat :app:testDebugUnitTest :app:jacocoTestReport :app:lintDebug
+```
+
+En macOS/Linux, usa `bash ./gradlew` en lugar de `.\gradlew.bat`.
+
+- Pruebas: `app/build/reports/tests/testDebugUnitTest/index.html`.
+- Cobertura HTML: `app/build/reports/jacoco/jacocoTestReport/html/index.html`.
+- Cobertura XML: `app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml`.
+- Análisis estático: `app/build/reports/lint-results-debug.html`.
+
+`ExternalPostViewModelTest` cubre carga, éxito, respuesta vacía, errores, reintentos,
+actualización, peticiones simultáneas y cancelación. `SesionRemotaViewModelTest`
+cubre el flujo remoto con respuestas simuladas, el token, la limpieza del formulario
+y el cierre de sesión. Se mantienen las pruebas anteriores, incluidas las tres del
+Repository externo. JaCoCo analiza las clases Kotlin generadas por AGP 9 y las clases
+Java; no se excluyen pantallas ni lógica de negocio para aumentar el porcentaje.
+
+La API externa está separada en `data/model/ExternalPost`, `data/network/ExternalApiService`,
+`data/network/ExternalApiClient` y `data/repository/ExternalPostRepository`.
+Su cliente no comparte el interceptor JWT del backend.
+La opción «API externa» del menú lateral está registrada en `AppNavigation`,
+por lo que su ruta abre `ExternalPostScreen` dentro del grafo de navegación.
+
+Los archivos de la API externa, su pantalla y ViewModel, el menú lateral, las
+pruebas nuevas y la configuración de compilación incluyen notas en español
+junto a las instrucciones. Estas explican los datos, las acciones y las
+comprobaciones para facilitar el estudio del proyecto. Se conservan también
+los comentarios de las guías anteriores en el resto de las clases.
+
+### APK firmado
+
+1. Conserva la clave `.jks` en una carpeta privada fuera del repositorio.
+2. Copia `keystore.properties.example` a `keystore.properties` y completa la ruta,
+   el alias y las contraseñas localmente. Este archivo y los almacenes de claves
+   están ignorados por Git.
+3. Ejecuta `.\gradlew.bat :app:assembleRelease`.
+4. El resultado firmado queda en `app/build/outputs/apk/release/app-release.apk`.
+
+Si aún no existe una clave, se puede crear con `keytool` (solicita la contraseña
+en la terminal):
+
+```text
+keytool -genkeypair -keystore /ruta/privada/corpaliv-release.jks -storetype JKS -alias corpaliv-release -keyalg RSA -keysize 3072 -validity 10000
+```
+
+Guarda una copia privada de la clave y sus contraseñas para poder firmar futuras
+actualizaciones. La compilación de release exige la configuración de firma;
+las pruebas unitarias pueden ejecutarse sin ella.
+
+### Validación de la integración
+
+La entrega está configurada para un **emulador de Android**, con los microservicios
+del computador en `10.0.2.2`: oportunidades en el puerto 8081, aportes en 8082 y
+autenticación en 8083. El manifiesto permite HTTP para este entorno local.
+El APK necesita esos servicios encendidos para completar los flujos del backend.
+
+Antes de entregar, verificar en el emulador: inicio y navegación; publicaciones
+externas y actualización; login remoto correcto e incorrecto; oportunidades;
+registro/aportes; perfil, cámara/galería y cierre de sesión. Las pruebas con mocks
+no sustituyen esta comprobación contra los servicios reales.

@@ -13,3 +13,9 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Firma privada: nunca subir claves ni contraseñas al repositorio.
+*.jks
+*.keystore
+/keystore.properties
+/signing/
