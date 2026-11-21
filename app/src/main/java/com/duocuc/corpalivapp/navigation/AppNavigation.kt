@@ -22,7 +22,6 @@ import com.duocuc.corpalivapp.ui.components.AppBottomBar // Importación del com
 import com.duocuc.corpalivapp.ui.screens.DashboardScreen // Pantalla del panel de administración/dashboard
 import com.duocuc.corpalivapp.ui.screens.HomeScreenAdaptive // Pantalla principal de inicio con soporte adaptativo
 import com.duocuc.corpalivapp.ui.screens.InstitucionScreen // Pantalla informativa de la institución
-import com.duocuc.corpalivapp.ui.screens.OportunidadFormScreen // Formulario para crear o modificar oportunidades (Parcial 4)
 import com.duocuc.corpalivapp.ui.screens.LoginScreen // Pantalla de autenticación/inicio de sesión
 import com.duocuc.corpalivapp.ui.screens.ModoEspecialScreen // Pantalla para el modo especial de visualización
 import com.duocuc.corpalivapp.ui.screens.OportunidadesScreen // Pantalla que lista las oportunidades o programas de la ONG
@@ -31,7 +30,6 @@ import com.duocuc.corpalivapp.ui.screens.RegistroScreen // Pantalla del formular
 import com.duocuc.corpalivapp.ui.screens.ResumenScreen // Pantalla de resumen y confirmación del registro
 import com.duocuc.corpalivapp.ui.viewmodel.DashboardViewModel // ViewModel para gestionar la lógica del Dashboard
 import com.duocuc.corpalivapp.ui.viewmodel.InicioViewModel // ViewModel que provee datos para la pantalla de inicio
-import com.duocuc.corpalivapp.ui.viewmodel.OportunidadFormViewModel // ViewModel del formulario de oportunidades (Parcial 4)
 import com.duocuc.corpalivapp.ui.viewmodel.MainViewModel // ViewModel central que administra los eventos globales de navegación
 import com.duocuc.corpalivapp.ui.viewmodel.PerfilViewModel // ViewModel para la captura de fotos y gestión del perfil
 import com.duocuc.corpalivapp.ui.viewmodel.SesionViewModel // ViewModel que administra la autenticación y estado de sesión
@@ -52,7 +50,6 @@ fun AppNavigation( // Declaración del composable principal encargado de coordin
     perfilViewModel: PerfilViewModel = viewModel(), // ViewModel compartido para la foto y perfil de usuario
     dashboardViewModel: DashboardViewModel = viewModel(), // ViewModel compartido para administrar los registros persistidos
     inicioViewModel: InicioViewModel = viewModel(), // ViewModel para alimentar los datos dinamicos del Home
-    oportunidadFormViewModel: OportunidadFormViewModel = viewModel(), // Parcial 4: ViewModel compartido del formulario de oportunidades
     sesionViewModel: SesionViewModel = viewModel() // ViewModel para coordinar el estado de autenticación de la app
 ) {
     val navController = rememberNavController() // Crea y recuerda el objeto NavController que dirige las transiciones
@@ -99,7 +96,7 @@ fun AppNavigation( // Declaración del composable principal encargado de coordin
     // El flujo de registro (formulario y resumen) cuenta como parte de "Oportunidades"
     val seccionActual: Screen? = when (rutaActual) { // Mapea la ruta actual a una sección principal para la barra inferior
         Screen.Home.route -> Screen.Home // Identifica la sección de Inicio
-        Screen.Oportunidades.route, Screen.Registro.route, Screen.Resumen.route, Screen.OportunidadForm.route -> Screen.Oportunidades // Agrupa el flujo de registro bajo Oportunidades
+        Screen.Oportunidades.route, Screen.Registro.route, Screen.Resumen.route -> Screen.Oportunidades // Agrupa el flujo de registro bajo Oportunidades
         Screen.Institucion.route -> Screen.Institucion // Identifica la sección de Institución
         else -> null // Otras rutas no resaltan ninguna opción en la barra inferior
     }
@@ -134,23 +131,7 @@ fun AppNavigation( // Declaración del composable principal encargado de coordin
                     onConectar = { oportunidad -> // Acción al hacer clic en conectar con una oportunidad
                         usuarioViewModel.seleccionarOportunidad(oportunidad.titulo) // Almacena el título en el ViewModel compartido
                         mainViewModel.navigateTo(Screen.Registro) // Navega hacia la pantalla de formulario de registro
-                    },
-                    esAdmin = sesion?.rol == RolUsuario.ADMINISTRADOR, // Parcial 4: los controles de gestión aparecen solo con sesión de administrador
-                    onNueva = { // Parcial 4: abre el formulario vacío para crear una oportunidad
-                        oportunidadFormViewModel.nueva()
-                        mainViewModel.navigateTo(Screen.OportunidadForm)
-                    },
-                    onEditar = { oportunidad -> // Parcial 4: abre el formulario con los datos de la oportunidad elegida
-                        oportunidadFormViewModel.editar(oportunidad)
-                        mainViewModel.navigateTo(Screen.OportunidadForm)
                     }
-                )
-            }
-            composable(route = Screen.OportunidadForm.route) { // Parcial 4: nodo del formulario para crear o modificar oportunidades
-                OportunidadFormScreen(
-                    viewModel = oportunidadFormViewModel, // ViewModel compartido con los datos del formulario
-                    onBack = volver, // Vuelve al listado sin guardar
-                    onGuardado = volver // Tras guardar vuelve al listado, que se recarga solo
                 )
             }
             composable(route = Screen.Institucion.route) { // Define el nodo de la pantalla Institución
